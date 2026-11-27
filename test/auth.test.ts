@@ -2,7 +2,7 @@ import { strict as assert } from 'node:assert'
 import { test } from 'node:test'
 import { v1Routes } from '../server/api/v1/routes.ts'
 import { createSession } from '../server/sessions/sessions.ts'
-import { createAccount, signIn } from './helpers/sign-in.ts'
+import { createAccount, sessionToken, signIn } from './helpers/sign-in.ts'
 import { startApp, type StartedApp } from './helpers/start-app.ts'
 
 const cleared = 'pupload_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0'
@@ -18,7 +18,7 @@ async function withApp(run: (app: StartedApp, token: string, user: unknown) => P
   try {
     await createAccount(app)
     const res = await signIn(app)
-    const token = /^pupload_session=([^;]+)/.exec(res.headers.getSetCookie()[0] as string)?.[1] as string
+    const token = sessionToken(res)
     const { user } = await res.json() as { user: unknown }
     await run(app, token, user)
   } finally {
