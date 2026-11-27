@@ -24,7 +24,7 @@ export function SignInForm() {
       <Field label="Username" name="username" autocomplete="username" autocapitalize="none" autocorrect={false} spellcheck={false} required disabled={busy} />
       <Field label="Password" name="password" type="password" autocomplete="current-password" required disabled={busy} aria-invalid={error !== null} ref={password} />
       <Alert message={error} />
-      <Button primary block type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</Button>
+      <Button variant="primary" block type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</Button>
     </form>
   )
 }

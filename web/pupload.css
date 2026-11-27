@@ -114,6 +114,8 @@ body {
 .button:disabled { cursor: default; opacity: 0.7; }
 .button--primary { background: var(--accent-primary-deep); color: var(--text-on-accent); }
 @media (hover: hover) { .button--primary:hover:not(:disabled) { background: var(--accent-primary-hover); } }
+.button--secondary { background: transparent; color: var(--text-secondary); border-color: var(--border-default); }
+@media (hover: hover) { .button--secondary:hover:not(:disabled) { color: var(--text-primary); border-color: var(--border-muted); } }
 .button--block { width: 100%; }
 
 .alert {
