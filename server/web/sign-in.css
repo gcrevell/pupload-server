@@ -1,0 +1,29 @@
+body { display: grid; place-items: center; padding: 96px 16px 48px; }
+.sign-in { width: min(100%, 360px); }
+.sign-in-head { display: flex; flex-direction: column; margin-bottom: 32px; }
+.sign-in-head h1 { margin: 0; font-weight: 700; }
+
+@media (width < 600px) {
+  .sign-in-head {
+    gap: 24px;
+    --wordmark-gap: 12px;
+    --wordmark-font-size: 24px;
+    --wordmark-tile-size: 44px;
+    --wordmark-tile-radius: 12px;
+    --wordmark-icon-size: 24px;
+  }
+  .sign-in-head h1 { font-size: 28px; line-height: 1.2; letter-spacing: -0.01em; }
+}
+
+@media (width >= 600px) {
+  body { padding: 72px 16px; }
+  .sign-in {
+    width: min(100%, 400px);
+    padding: 32px;
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-panel);
+    background: var(--surface-panel);
+  }
+  .sign-in-head { align-items: center; gap: 20px; margin-bottom: 28px; }
+  .sign-in-head h1 { font-size: 20px; }
+}
