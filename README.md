@@ -30,6 +30,14 @@ The config folder is `config/` in the folder Pupload runs from, or `PUPLOAD_CONF
 | --- | --- | --- |
 | `port` | `7875` | The port Pupload listens on |
 
+## API
+
+The API is versioned in its path, starting at `/api/v1`. A new version comes only with a change that would break an app using the current one. New endpoints and fields go into the current version.
+
+| Endpoint | Returns |
+| --- | --- |
+| `GET /api/v1/info` | `{ "version": "2026.11.3" }`: the server's version, from `PUPLOAD_VERSION`, or `dev` when that isn't set |
+
 ## Testing a change
 
 ```sh
