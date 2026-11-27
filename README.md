@@ -43,6 +43,8 @@ The API is versioned in its path, starting at `/api/v1`. A new version comes onl
 | --- | --- |
 | `GET /api/v1/info` | `{ "version": "2026.11.3" }`: the server's version, from `PUPLOAD_VERSION`, or `dev` when that isn't set |
 
+An error under `/api` answers with its HTTP status and a body of `{ "error": "…" }`, where the message is a sentence that can be shown to the person.
+
 An image gets `PUPLOAD_VERSION` from the build argument of the same name: `docker build --build-arg PUPLOAD_VERSION=2026.11.3 -t pupload .`
 
 ## Testing a change
