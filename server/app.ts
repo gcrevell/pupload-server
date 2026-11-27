@@ -1,4 +1,5 @@
 import type { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from 'node:http'
+import type { ApiResponse } from './api/api-response.ts'
 import { HttpError } from './api/http-error.ts'
 import type { Route } from './api/route.ts'
 
@@ -28,7 +29,7 @@ async function respond(options: AppOptions, req: IncomingMessage, res: ServerRes
     return sendError(res, pathname, 405, `${pathname} only answers ${allowed.join(' and ')}.`, { Allow: allowed.join(', ') })
   }
   try {
-    sendJson(res, 200, await route.handle(req))
+    sendResponse(res, await route.handle({ req, url: new URL(req.url ?? '/', 'http://localhost') }))
   } catch (err) {
     if (err instanceof HttpError) return sendError(res, pathname, err.status, err.message, err.headers)
     throw err
@@ -46,6 +47,13 @@ function pathnameOf(req: IncomingMessage): string {
 function sendError(res: ServerResponse, pathname: string, status: number, message: string, headers: OutgoingHttpHeaders = {}): void {
   if (pathname === '/api' || pathname.startsWith('/api/')) sendJson(res, status, { error: message }, headers)
   else sendText(res, status, `${message}\n`, headers)
+}
+
+function sendResponse(res: ServerResponse, { status = 200, headers = {}, body }: ApiResponse): void {
+  if (body === undefined) {
+    res.writeHead(status, headers)
+    res.end()
+  } else sendJson(res, status, body, headers)
 }
 
 function sendText(res: ServerResponse, status: number, text: string, headers: OutgoingHttpHeaders = {}): void {
