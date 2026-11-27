@@ -87,7 +87,7 @@ An image gets `PUPLOAD_VERSION` from the build argument of the same name: `docke
 npm test
 ```
 
-The tests use Node's built-in test runner and start the server on a free port.
+The tests use Node's built-in test runner and start the server on a free port. CI runs them on every PR and every push to `main`.
 
 For a change to the Dockerfile or how the server starts, check that the image builds and goes healthy on a read-only filesystem:
 
