@@ -1,6 +1,8 @@
 import type { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from 'node:http'
+import type { ApiRequest } from './api/api-request.ts'
 import type { ApiResponse } from './api/api-response.ts'
 import { HttpError } from './api/http-error.ts'
+import { readJson } from './api/read-json.ts'
 import type { Route } from './api/route.ts'
 
 export interface AppOptions {
@@ -29,10 +31,19 @@ async function respond(options: AppOptions, req: IncomingMessage, res: ServerRes
     return sendError(res, pathname, 405, `${pathname} only answers ${allowed.join(' and ')}.`, { Allow: allowed.join(', ') })
   }
   try {
-    sendResponse(res, await route.handle({ req, url: new URL(req.url ?? '/', 'http://localhost') }))
+    sendResponse(res, await route.handle(apiRequest(req)))
   } catch (err) {
     if (err instanceof HttpError) return sendError(res, pathname, err.status, err.message, err.headers)
     throw err
+  }
+}
+
+function apiRequest(req: IncomingMessage): ApiRequest {
+  let body: Promise<Record<string, unknown>> | undefined
+  return {
+    req,
+    url: new URL(req.url ?? '/', 'http://localhost'),
+    json: () => (body ??= readJson(req)),
   }
 }
 
