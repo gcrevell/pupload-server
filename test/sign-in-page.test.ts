@@ -14,24 +14,24 @@ after(async () => {
   await app.close()
 })
 
-test('GET /sign-in answers the sign-in page', async () => {
-  const res = await fetch(`${app.base}/sign-in`)
+test('GET /auth/login answers the sign-in page', async () => {
+  const res = await fetch(`${app.base}/auth/login`)
   assert.equal(res.status, 200)
   assert.equal(res.headers.get('content-type'), 'text/html; charset=utf-8')
   assert.match(await res.text(), /<title>Sign in · Pupload<\/title>/)
 })
 
 test('every file the sign-in page loads is served', async () => {
-  const html = await (await fetch(`${app.base}/sign-in`)).text()
+  const html = await (await fetch(`${app.base}/auth/login`)).text()
   const links = [...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(([, link]) => link)
   assert.notEqual(links.length, 0)
   for (const link of links) {
-    const res = await fetch(new URL(link, `${app.base}/sign-in`))
+    const res = await fetch(new URL(link, `${app.base}/auth/login`))
     assert.equal(res.status, 200, link)
   }
 })
 
 test('without JavaScript the sign-in page says it needs it', async () => {
-  const html = await (await fetch(`${app.base}/sign-in`)).text()
+  const html = await (await fetch(`${app.base}/auth/login`)).text()
   assert.match(html, /<noscript>Signing in to Pupload needs JavaScript\. Turn it on, then reload this page\.<\/noscript>/)
 })
