@@ -8,5 +8,14 @@
   "schedule": [
     "* * * * 6"
   ],
-  "prConcurrentLimit": 1
+  "prConcurrentLimit": 1,
+  "packageRules": [
+    {
+      "description": "typescript-eslint supports TypeScript below 6.1",
+      "matchPackageNames": [
+        "typescript"
+      ],
+      "allowedVersions": "<6.1"
+    }
+  ]
 }
