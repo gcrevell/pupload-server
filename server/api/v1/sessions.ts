@@ -1,6 +1,5 @@
 import { randomBytes } from 'node:crypto'
 import { hashPassword, verifyPassword } from '../../accounts/passwords.ts'
-import { clearedSessionCookie, sessionCookie } from '../../sessions/session-cookie.ts'
 import { createSession, deleteSession } from '../../sessions/sessions.ts'
 import { signedIn, type ApiRequest } from '../api-request.ts'
 import type { ApiResponse } from '../api-response.ts'
@@ -12,7 +11,7 @@ import { userResponse, type UserResponse, type UserRow } from './user-response.t
 // Started when the routes load, so the first unknown username doesn't wait for two hashes.
 const dummyHash = hashPassword(randomBytes(16).toString('base64url'))
 
-export async function signIn(request: ApiRequest, { db, now, signInLimiter }: AppContext): Promise<ApiResponse & { body: { user: UserResponse } }> {
+export async function signIn(request: ApiRequest, { db, now, signInLimiter, cookies }: AppContext): Promise<ApiResponse & { body: { user: UserResponse } }> {
   const { username, password } = stringFields(await request.json(), ['username', 'password'])
   signInLimiter.attempt(request.ip, username)
 
@@ -23,10 +22,10 @@ export async function signIn(request: ApiRequest, { db, now, signInLimiter }: Ap
 
   signInLimiter.succeeded(request.ip, username)
   const token = createSession(db, account.id, now())
-  return { status: 201, headers: { 'Set-Cookie': sessionCookie(token) }, body: { user: userResponse(account) } }
+  return { status: 201, headers: { 'Set-Cookie': cookies.set(token) }, body: { user: userResponse(account) } }
 }
 
-export function signOut(request: ApiRequest, { db }: AppContext): ApiResponse {
+export function signOut(request: ApiRequest, { db, cookies }: AppContext): ApiResponse {
   deleteSession(db, signedIn(request).sessionId)
-  return { status: 204, headers: { 'Set-Cookie': clearedSessionCookie } }
+  return { status: 204, headers: { 'Set-Cookie': cookies.cleared } }
 }

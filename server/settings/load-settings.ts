@@ -49,12 +49,21 @@ export function parseSettings(text: string, file: string): Settings {
     if (!known.includes(key)) throw new SettingsError(`${file} has a setting called "${key}", which Pupload doesn't have. Remove it or fix its name. The settings are: ${known.join(', ')}.`)
   }
 
-  const { port = defaultSettings.port, trustedProxies = defaultSettings.trustedProxies } = raw as Record<string, unknown>
+  const { port = defaultSettings.port, trustedProxies = defaultSettings.trustedProxies, publicUrl = defaultSettings.publicUrl } = raw as Record<string, unknown>
   if (typeof port !== 'number' || !Number.isInteger(port) || port < 1 || port > 65535) {
     throw new SettingsError(`"port" in ${file} is ${JSON.stringify(port)}. Set it to a port number from 1 to 65535.`)
   }
   if (!Array.isArray(trustedProxies) || !trustedProxies.every((entry) => typeof entry === 'string' && isIP(normalizeAddress(entry)) !== 0)) {
     throw new SettingsError(`"trustedProxies" in ${file} is ${JSON.stringify(trustedProxies)}. Set it to a list of the addresses of the proxies in front of Pupload, like ["192.0.2.10"].`)
   }
-  return { port, trustedProxies: trustedProxies.map((entry: string) => normalizeAddress(entry)) }
+  return { port, trustedProxies: trustedProxies.map((entry: string) => normalizeAddress(entry)), publicUrl: originOf(publicUrl, file) }
+}
+
+function originOf(value: unknown, file: string): string | null {
+  if (value === null) return null
+  const url = typeof value === 'string' ? URL.parse(value) : null
+  if (url === null || !['http:', 'https:'].includes(url.protocol) || url.username !== '' || url.password !== '' || url.pathname !== '/' || url.search !== '' || url.hash !== '') {
+    throw new SettingsError(`"publicUrl" in ${file} is ${JSON.stringify(value)}. Set it to the address people open Pupload at, like "https://pupload.example.com", or null.`)
+  }
+  return url.origin
 }

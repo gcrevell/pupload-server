@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { strict as assert } from 'node:assert'
 import { test } from 'node:test'
+import { defaultSettings } from '../server/settings/default-settings.ts'
 import { v1Routes } from '../server/api/v1/routes.ts'
 import { createAccount, password, sessionToken, signIn } from './helpers/sign-in.ts'
 import { startApp, type StartedApp } from './helpers/start-app.ts'
@@ -82,4 +83,38 @@ test('signing in twice makes two sessions', () => withAccount(async (app) => {
   const second = await signIn(app)
   assert.notEqual(first.headers.getSetCookie()[0], second.headers.getSetCookie()[0])
   assert.equal(sessionRows(app).length, 2)
+}))
+
+async function withPublicUrl(publicUrl: string, run: (app: StartedApp) => Promise<void>): Promise<void> {
+  const app = await startApp({ routes: v1Routes, settings: { ...defaultSettings, publicUrl } })
+  try {
+    await createAccount(app)
+    await run(app)
+  } finally {
+    await app.close()
+  }
+}
+
+test('with an https publicUrl, the cookie is Secure and named __Host-pupload_session', () => withPublicUrl('https://pupload.example.com', async (app) => {
+  const res = await signIn(app)
+  const cookies = res.headers.getSetCookie()
+  assert.equal(cookies.length, 1)
+  assert.match(cookies[0] as string, /^__Host-pupload_session=[A-Za-z0-9_-]{43}; Secure; HttpOnly; SameSite=Lax; Path=\/; Max-Age=2592000$/)
+  const token = sessionToken(res)
+
+  const signedIn = await fetch(`${app.base}/api/v1/me`, { headers: { Cookie: `__Host-pupload_session=${token}` } })
+  assert.equal(signedIn.status, 200)
+
+  const plainName = await fetch(`${app.base}/api/v1/me`, { headers: { Cookie: `pupload_session=${token}` } })
+  assert.equal(plainName.status, 401)
+  assert.deepEqual(plainName.headers.getSetCookie(), [])
+
+  const out = await fetch(`${app.base}/api/v1/sessions/current`, { method: 'DELETE', headers: { Cookie: `__Host-pupload_session=${token}` } })
+  assert.equal(out.status, 204)
+  assert.deepEqual(out.headers.getSetCookie(), ['__Host-pupload_session=; Secure; HttpOnly; SameSite=Lax; Path=/; Max-Age=0'])
+}))
+
+test('with an http publicUrl, the cookie is the plain one', () => withPublicUrl('http://192.0.2.10:7875', async (app) => {
+  const res = await signIn(app)
+  assert.match(res.headers.getSetCookie()[0] as string, /^pupload_session=[A-Za-z0-9_-]{43}; HttpOnly; SameSite=Lax; Path=\/; Max-Age=2592000$/)
 }))

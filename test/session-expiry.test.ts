@@ -1,13 +1,15 @@
 import { strict as assert } from 'node:assert'
 import { test } from 'node:test'
 import { v1Routes } from '../server/api/v1/routes.ts'
-import { sessionCookie } from '../server/sessions/session-cookie.ts'
+import { sessionCookies } from '../server/sessions/session-cookie.ts'
+import { defaultSettings } from '../server/settings/default-settings.ts'
 import { createSession, deleteExpiredSessions, sessionLifetime } from '../server/sessions/sessions.ts'
 import { createAccount, sessionToken, signIn } from './helpers/sign-in.ts'
 import { startApp, type StartedApp } from './helpers/start-app.ts'
 
 const minute = 60 * 1000
 const day = 24 * 60 * minute
+const { set: sessionCookie } = sessionCookies(defaultSettings)
 const cleared = 'pupload_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0'
 
 async function withApp(run: (app: StartedApp, token: string, clock: { t: number }) => Promise<void>): Promise<void> {
@@ -82,3 +84,18 @@ test('signing out when a refresh is due sends only the cleared cookie', () => wi
   assert.equal(res.status, 204)
   assert.deepEqual(res.headers.getSetCookie(), [cleared])
 }))
+
+test('with an https publicUrl, the resent cookie is the Secure __Host- one', async () => {
+  const clock = { t: 0 }
+  const app = await startApp({ routes: v1Routes, now: () => clock.t, settings: { ...defaultSettings, publicUrl: 'https://pupload.example.com' } })
+  try {
+    await createAccount(app)
+    const token = sessionToken(await signIn(app))
+    clock.t = 61 * minute
+    const res = await fetch(`${app.base}/api/v1/me`, { headers: { Cookie: `__Host-pupload_session=${token}` } })
+    assert.equal(res.status, 200)
+    assert.deepEqual(res.headers.getSetCookie(), [`__Host-pupload_session=${token}; Secure; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000`])
+  } finally {
+    await app.close()
+  }
+})
