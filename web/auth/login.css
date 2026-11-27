@@ -1,4 +1,5 @@
 body { display: grid; place-items: center; padding: 96px 16px 48px; }
+.corner { position: absolute; top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); }
 .sign-in { width: min(100%, 360px); }
 .sign-in-head { display: flex; flex-direction: column; align-items: center; margin-bottom: 32px; }
 .sign-in-head h1 { margin: 0; font-weight: 700; }
