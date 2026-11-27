@@ -11,6 +11,8 @@ import type { Route } from './api/route.ts'
 export interface AppOptions {
   routes: Route[]
   db: DatabaseSync
+  setupCode?: string
+  now?: () => number
 }
 
 export function createApp(options: AppOptions): (req: IncomingMessage, res: ServerResponse) => void {
@@ -36,11 +38,15 @@ async function respond(options: AppOptions, req: IncomingMessage, res: ServerRes
     return sendError(res, pathname, 405, `${pathname} only answers ${allowed.join(' and ')}.`, { Allow: allowed.join(', ') })
   }
   try {
-    sendResponse(res, await route.handle(apiRequest(req), { db: options.db }))
+    sendResponse(res, await route.handle(apiRequest(req), context(options)))
   } catch (err) {
     if (err instanceof HttpError) return sendError(res, pathname, err.status, err.message, err.headers)
     throw err
   }
+}
+
+function context({ db, setupCode, now = Date.now }: AppOptions): AppContext {
+  return { db, setupCode, now }
 }
 
 function apiRequest(req: IncomingMessage): ApiRequest {

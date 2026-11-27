@@ -1,4 +1,6 @@
 import { createServer } from 'node:http'
+import { hasAccounts } from './accounts/has-accounts.ts'
+import { newSetupCode } from './accounts/setup-code.ts'
 import { v1Routes } from './api/v1/routes.ts'
 import { createApp } from './app.ts'
 import { DatabaseError } from './db/database-error.ts'
@@ -35,9 +37,14 @@ if (created) process.stdout.write(`Wrote the default settings to ${file}.\n`)
 
 const dbFile = databaseFile()
 const db = open(dbFile)
+let setupCode: string | undefined
+if (!hasAccounts(db)) {
+  setupCode = newSetupCode()
+  process.stdout.write(`Pupload has no accounts yet. Create the first one with the setup code ${setupCode}. A new code is made each time Pupload starts.\n`)
+}
 
 const { port } = settings
-const server = createServer(createApp({ routes: v1Routes, db }))
+const server = createServer(createApp({ routes: v1Routes, db, setupCode }))
 server.on('error', (err: NodeJS.ErrnoException) => {
   if (err.code === 'EADDRINUSE') fail(`Port ${port} is already in use. Stop whatever is using it, or change "port" in ${file}.`)
   fail(err.stack ?? err.message)

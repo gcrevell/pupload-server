@@ -25,6 +25,18 @@ Without Docker, it needs Node 26 or newer, and has no dependencies to install:
 npm start
 ```
 
+### The first account
+
+A new Pupload has no accounts. It prints a setup code in its log when it starts, and makes a new one each time until an account exists. Create the first account, which is an admin, with that code:
+
+```sh
+docker logs pupload   # … setup code 7KQ2-M9XD-PL4R …
+curl -X POST http://localhost:7875/api/v1/setup -H 'Content-Type: application/json' \
+  -d '{"code": "7KQ2-M9XD-PL4R", "username": "alex", "password": "a long passphrase"}'
+```
+
+A username is 1 to 64 letters, digits, dots, underscores or hyphens, and a password needs at least 12 characters. Setup doesn't sign you in. This goes away once the web UI does setup itself.
+
 ## Settings
 
 Pupload keeps its settings in `settings.json` in its config folder. The first time it starts, it writes the file with the defaults. A setting left out of the file uses its default, and Pupload won't start if one is wrong.
@@ -50,6 +62,7 @@ The API is versioned in its path, starting at `/api/v1`. A new version comes onl
 | Endpoint | Returns |
 | --- | --- |
 | `GET /api/v1/info` | `{ "version": "2026.11.3", "setupNeeded": false }`: the server's version, from `PUPLOAD_VERSION`, or `dev` when that isn't set, and whether Pupload still needs its first account (`true` until one is made) |
+| `POST /api/v1/setup` | Creates the first account, an admin, from `{ "code", "username", "password" }` and answers 201 with `{ "user": { "id", "username", "isAdmin", "createdAt" } }`. 403 for a wrong setup code, 400 for a username or password that breaks the rules, and 409 once an account exists |
 
 An error under `/api` answers with its HTTP status and a body of `{ "error": "…" }`, where the message is a sentence that can be shown to the person.
 
