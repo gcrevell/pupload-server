@@ -1,8 +1,8 @@
 import { randomBytes } from 'node:crypto'
 import { hashPassword, verifyPassword } from '../../accounts/passwords.ts'
-import { sessionCookie } from '../../sessions/session-cookie.ts'
-import { createSession } from '../../sessions/sessions.ts'
-import type { ApiRequest } from '../api-request.ts'
+import { clearedSessionCookie, sessionCookie } from '../../sessions/session-cookie.ts'
+import { createSession, deleteSession } from '../../sessions/sessions.ts'
+import { signedIn, type ApiRequest } from '../api-request.ts'
 import type { ApiResponse } from '../api-response.ts'
 import type { AppContext } from '../app-context.ts'
 import { HttpError } from '../http-error.ts'
@@ -24,4 +24,9 @@ export async function signIn(request: ApiRequest, { db, now, signInLimiter }: Ap
   signInLimiter.succeeded(request.ip, username)
   const token = createSession(db, account.id, now())
   return { status: 201, headers: { 'Set-Cookie': sessionCookie(token) }, body: { user: userResponse(account) } }
+}
+
+export function signOut(request: ApiRequest, { db }: AppContext): ApiResponse {
+  deleteSession(db, signedIn(request).sessionId)
+  return { status: 204, headers: { 'Set-Cookie': clearedSessionCookie } }
 }

@@ -12,6 +12,10 @@ export function createSession(db: DatabaseSync, userId: number, now: number): st
   return token
 }
 
+export function deleteSession(db: DatabaseSync, sessionId: number): void {
+  db.prepare('DELETE FROM sessions WHERE id = ?').run(sessionId)
+}
+
 export function findSession(db: DatabaseSync, token: string): { sessionId: number; user: UserRow } | undefined {
   const row = db.prepare(`
     SELECT sessions.id AS session_id, users.id, users.username, users.is_admin, users.created_at

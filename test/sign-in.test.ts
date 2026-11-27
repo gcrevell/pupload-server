@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { strict as assert } from 'node:assert'
 import { test } from 'node:test'
 import { v1Routes } from '../server/api/v1/routes.ts'
-import { createAccount, password, signIn } from './helpers/sign-in.ts'
+import { createAccount, password, sessionToken, signIn } from './helpers/sign-in.ts'
 import { startApp, type StartedApp } from './helpers/start-app.ts'
 
 const noMatch = { error: "That username and password don't match an account." }
@@ -41,7 +41,7 @@ test('the username works in another case', () => withAccount(async (app) => {
 
 test('the sessions table holds the hash of the token, and not the token', () => withAccount(async (app) => {
   const res = await signIn(app)
-  const token = /^pupload_session=([^;]+)/.exec(res.headers.getSetCookie()[0] as string)?.[1] as string
+  const token = sessionToken(res)
   const rows = sessionRows(app)
   assert.equal(rows.length, 1)
   const row = rows[0] as { token_hash: Uint8Array }

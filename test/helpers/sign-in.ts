@@ -18,3 +18,9 @@ function post(app: StartedApp, path: string, body: Record<string, unknown>): Pro
     body: JSON.stringify(body),
   })
 }
+
+export function sessionToken(res: Response): string {
+  const token = /^pupload_session=([^;]+)/.exec(res.headers.getSetCookie()[0] ?? '')?.[1]
+  if (token === undefined) throw new Error('The response set no session cookie.')
+  return token
+}
