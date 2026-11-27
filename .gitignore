@@ -4,6 +4,3 @@
 # Claude
 .claude/worktrees/
 .claude/settings.local.json
-
-# Settings written by a local run
-/config/

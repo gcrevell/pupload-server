@@ -22,7 +22,7 @@ It listens on port 7875. `GET /` answers `hello world`.
 
 ## Settings
 
-Pupload keeps its settings in `settings.json` in its config folder. The first time it starts, it writes the file with the defaults. To change a setting, edit the file and restart Pupload. A setting left out of the file uses its default, and Pupload won't start if one is wrong.
+Pupload keeps its settings in `settings.json` in its config folder. The first time it starts, it writes the file with the defaults. A setting left out of the file uses its default, and Pupload won't start if one is wrong.
 
 The config folder is `config/` in the folder Pupload runs from, or `PUPLOAD_CONFIG_DIR` if that's set.
 

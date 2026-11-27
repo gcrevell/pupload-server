@@ -1,6 +1,7 @@
 import { createServer } from 'node:http'
 import { handleRequest } from './app.ts'
-import { loadSettings, SettingsError, settingsFile } from './settings.ts'
+import { loadSettings, settingsFile } from './settings/load-settings.ts'
+import { SettingsError } from './settings/settings-error.ts'
 
 function fail(message: string): never {
   process.stderr.write(`Pupload didn't start. ${message}\n`)

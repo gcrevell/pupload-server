@@ -1,15 +1,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
-
-export interface Settings {
-  port: number
-}
-
-export class SettingsError extends Error {}
-
-export const defaultSettings: Settings = {
-  port: 7875,
-}
+import { defaultSettings } from './default-settings.ts'
+import { SettingsError } from './settings-error.ts'
+import type { Settings } from './settings.ts'
 
 export function settingsFile(env: NodeJS.ProcessEnv = process.env): string {
   return resolve(env.PUPLOAD_CONFIG_DIR || 'config', 'settings.json')

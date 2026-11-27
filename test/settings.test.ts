@@ -3,7 +3,9 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { after, test } from 'node:test'
-import { defaultSettings, loadSettings, parseSettings, SettingsError, settingsFile } from '../server/settings.ts'
+import { defaultSettings } from '../server/settings/default-settings.ts'
+import { loadSettings, parseSettings, settingsFile } from '../server/settings/load-settings.ts'
+import { SettingsError } from '../server/settings/settings-error.ts'
 
 const dir = mkdtempSync(join(tmpdir(), 'pupload-settings-'))
 after(() => rmSync(dir, { recursive: true, force: true }))
