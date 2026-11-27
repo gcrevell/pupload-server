@@ -1,6 +1,7 @@
 import type { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from 'node:http'
 import type { ApiRequest } from './api/api-request.ts'
 import type { ApiResponse } from './api/api-response.ts'
+import { isCrossSite } from './api/cross-site.ts'
 import { HttpError } from './api/http-error.ts'
 import { readJson } from './api/read-json.ts'
 import type { Route } from './api/route.ts'
@@ -22,6 +23,7 @@ export function createApp(options: AppOptions): (req: IncomingMessage, res: Serv
 async function respond(options: AppOptions, req: IncomingMessage, res: ServerResponse): Promise<void> {
   const pathname = pathnameOf(req)
   if (req.method === 'GET' && pathname === '/') return sendText(res, 200, 'hello world\n')
+  if (isCrossSite(req)) return sendError(res, pathname, 403, 'Pupload only accepts this from its own pages.')
 
   const routes = options.routes.filter((route) => route.path === pathname)
   const route = routes.find((candidate) => candidate.method === req.method)
