@@ -44,12 +44,17 @@ async function respond(allRoutes: Route[], context: AppContext, req: IncomingMes
   }
   try {
     const request = apiRequest(req)
-    authenticate(route, request, context)
-    sendResponse(res, await route.handle(request, context))
+    const refreshedCookie = authenticate(route, request, context)
+    sendResponse(res, withCookie(await route.handle(request, context), refreshedCookie))
   } catch (err) {
     if (err instanceof HttpError) return sendError(res, pathname, err.status, err.message, err.headers)
     throw err
   }
+}
+
+function withCookie(response: ApiResponse, cookie: string | undefined): ApiResponse {
+  if (cookie === undefined || Object.keys(response.headers ?? {}).some((name) => name.toLowerCase() === 'set-cookie')) return response
+  return { ...response, headers: { ...response.headers, 'Set-Cookie': cookie } }
 }
 
 function apiRequest(req: IncomingMessage): ApiRequest {
