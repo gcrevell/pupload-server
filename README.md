@@ -9,3 +9,21 @@ This is a self hosted docker image designed to run on a Raspberry Pi 5 to backup
 * Syncing with popular apps -- Immach and Photo Prism can be configured to be reloaded on uploads
 * Custom event scripting -- Have a backup for your backup? Run custom json scripts for any event
 
+
+## Running it
+
+It needs Node 25 or newer, and has no dependencies to install.
+
+```sh
+npm start
+```
+
+It listens on port 8080, or on `PORT` if that's set. `GET /` answers `hello world`.
+
+## Testing a change
+
+```sh
+npm test
+```
+
+The tests use Node's built-in test runner and start the server on a free port.
