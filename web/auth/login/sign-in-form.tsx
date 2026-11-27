@@ -21,7 +21,7 @@ export function SignInForm() {
 
   return (
     <form class="stack sign-in-form" method="post" onSubmit={submit}>
-      <TextField label="Username" name="username" autocomplete="username" autocapitalize="none" autocorrect={false} spellcheck={false} required disabled={busy} />
+      <TextField label="Username" name="username" autocomplete="username" disableAutocapitalize disableAutocorrect disableSpellcheck required disabled={busy} />
       <TextField label="Password" name="password" type="password" autocomplete="current-password" required disabled={busy} aria-invalid={error !== null} ref={password} />
       <Alert message={error} />
       <Button variant="primary" block type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</Button>
