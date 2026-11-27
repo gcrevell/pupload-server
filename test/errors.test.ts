@@ -13,6 +13,7 @@ before(async () => {
       {
         method: 'POST',
         path: '/api/test/conflict',
+        auth: 'public',
         handle: () => {
           throw new HttpError(409, 'Already done.')
         },

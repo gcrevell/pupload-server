@@ -7,8 +7,8 @@ let app: StartedApp
 before(async () => {
   app = await startApp({
     routes: [
-      { method: 'POST', path: '/api/test/echo', handle: async (request) => ({ body: await request.json() }) },
-      { method: 'GET', path: '/api/test/ping', handle: () => ({ body: { pong: true } }) },
+      { method: 'POST', path: '/api/test/echo', auth: 'public', handle: async (request) => ({ body: await request.json() }) },
+      { method: 'GET', path: '/api/test/ping', auth: 'public', handle: () => ({ body: { pong: true } }) },
     ],
   })
 })

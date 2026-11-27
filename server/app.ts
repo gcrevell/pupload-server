@@ -8,6 +8,7 @@ import { isCrossSite } from './api/cross-site.ts'
 import { HttpError } from './api/http-error.ts'
 import { readJson } from './api/read-json.ts'
 import type { Route } from './api/route.ts'
+import { authenticate } from './sessions/authenticate.ts'
 import { createSignInLimiter } from './sessions/sign-in-limiter.ts'
 
 export interface AppOptions {
@@ -42,7 +43,9 @@ async function respond(allRoutes: Route[], context: AppContext, req: IncomingMes
     return sendError(res, pathname, 405, `${pathname} only answers ${allowed.join(' and ')}.`, { Allow: allowed.join(', ') })
   }
   try {
-    sendResponse(res, await route.handle(apiRequest(req), context))
+    const request = apiRequest(req)
+    authenticate(route, request, context)
+    sendResponse(res, await route.handle(request, context))
   } catch (err) {
     if (err instanceof HttpError) return sendError(res, pathname, err.status, err.message, err.headers)
     throw err
@@ -56,6 +59,8 @@ function apiRequest(req: IncomingMessage): ApiRequest {
     url: new URL(req.url ?? '/', 'http://localhost'),
     ip: clientAddress(req.socket.remoteAddress),
     json: () => (body ??= readJson(req)),
+    user: undefined,
+    sessionId: undefined,
   }
 }
 
