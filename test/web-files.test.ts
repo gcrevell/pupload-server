@@ -14,6 +14,11 @@ writeFileSync(join(webDir, 'page.html'), '<!doctype html><title>Page</title>\n')
 writeFileSync(join(webDir, 'style.css'), 'body { margin: 0; }\n')
 writeFileSync(join(webDir, 'script.js'), 'export {}\n')
 writeFileSync(join(webDir, '.DS_Store'), '')
+mkdirSync(join(webDir, 'auth', 'deep'), { recursive: true })
+writeFileSync(join(webDir, 'auth', 'deep', 'page.html'), '<!doctype html><title>Deep</title>\n')
+writeFileSync(join(webDir, 'auth', 'deep', 'page.js'), 'export {}\n')
+mkdirSync(join(webDir, '.cache'))
+writeFileSync(join(webDir, '.cache', 'old.js'), 'export {}\n')
 writeFileSync(join(dir, 'secret.txt'), 'not for the web\n')
 
 let app: StartedApp
@@ -44,6 +49,14 @@ test('CSS and JavaScript are served at their file names, with their types', asyn
   assert.equal(js.headers.get('content-type'), 'text/javascript; charset=utf-8')
 })
 
+test('a file in a folder is served under that folder', async () => {
+  const page = await fetch(`${app.base}/auth/deep/page`)
+  assert.equal(page.headers.get('content-type'), 'text/html; charset=utf-8')
+  assert.equal(await page.text(), '<!doctype html><title>Deep</title>\n')
+  const js = await fetch(`${app.base}/auth/deep/page.js`)
+  assert.equal(js.headers.get('content-type'), 'text/javascript; charset=utf-8')
+})
+
 test('a file changed after Pupload starts is served as it is now', async () => {
   writeFileSync(join(webDir, 'style.css'), 'body { margin: 8px; }\n')
   const res = await fetch(`${app.base}/style.css`)
@@ -65,7 +78,7 @@ test('another method on a web file is a 405', async () => {
 })
 
 test('only the files in the folder are served, and only at their own paths', async () => {
-  for (const path of ['/page.html', '/.DS_Store', '/secret.txt', '/..%2fsecret.txt', '/%2e%2e/secret.txt', '/web/page']) {
+  for (const path of ['/page.html', '/.DS_Store', '/secret.txt', '/..%2fsecret.txt', '/%2e%2e/secret.txt', '/web/page', '/auth/deep/page.html', '/deep/page', '/auth', '/.cache/old.js']) {
     const res = await fetch(`${app.base}${path}`)
     assert.equal(res.status, 404, path)
     assert.equal(res.headers.get('content-type'), 'text/plain; charset=utf-8', path)
@@ -74,7 +87,7 @@ test('only the files in the folder are served, and only at their own paths', asy
 
 test('a file of a type Pupload does not know stops it starting, and says which', () => {
   const other = join(dir, 'other')
-  mkdirSync(other)
-  writeFileSync(join(other, 'photo.png'), '')
-  assert.throws(() => listWebFiles(other), { message: `Pupload only serves .html, .css, and .js files from ${other}, so it can't serve photo.png. Move it out, or add its type to server/web-files.ts.` })
+  mkdirSync(join(other, 'photos'), { recursive: true })
+  writeFileSync(join(other, 'photos', 'photo.png'), '')
+  assert.throws(() => listWebFiles(other), { message: `Pupload only serves .html, .css, and .js files from ${other}, so it can't serve photos/photo.png. Move it out, or add its type to server/web-files.ts.` })
 })
