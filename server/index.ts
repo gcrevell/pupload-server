@@ -5,6 +5,7 @@ import { v1Routes } from './api/v1/routes.ts'
 import { createApp } from './app.ts'
 import { DatabaseError } from './db/database-error.ts'
 import { databaseFile, openDatabase } from './db/open-database.ts'
+import { deleteExpiredSessions } from './sessions/sessions.ts'
 import { loadSettings, settingsFile } from './settings/load-settings.ts'
 import { SettingsError } from './settings/settings-error.ts'
 
@@ -37,6 +38,7 @@ if (created) process.stdout.write(`Wrote the default settings to ${file}.\n`)
 
 const dbFile = databaseFile()
 const db = open(dbFile)
+deleteExpiredSessions(db, Date.now())
 let setupCode: string | undefined
 if (!hasAccounts(db)) {
   setupCode = newSetupCode()

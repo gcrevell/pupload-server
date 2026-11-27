@@ -71,7 +71,7 @@ test('a route without auth is locked', () => withApp(async (app, token) => {
 test('an admin route gets 403 for a non-admin and 200 for an admin', () => withApp(async (app, token) => {
   app.db.prepare(`INSERT INTO users (username, is_admin, created_at) VALUES ('sam', 0, 0)`).run()
   const { id } = app.db.prepare(`SELECT id FROM users WHERE username = 'sam'`).get() as { id: number }
-  const samToken = createSession(app.db, id, 0)
+  const samToken = createSession(app.db, id, Date.now())
 
   const refused = await get(app, '/api/test/admin', `pupload_session=${samToken}`)
   assert.equal(refused.status, 403)
