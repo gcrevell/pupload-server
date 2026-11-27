@@ -117,8 +117,8 @@ body {
 .button:disabled { cursor: default; opacity: 0.7; }
 .button--primary { background: var(--accent-primary-deep); color: var(--text-on-accent); }
 @media (hover: hover) { .button--primary:hover:not(:disabled) { background: var(--accent-primary-hover); } }
-.button--secondary { background: transparent; color: var(--text-secondary); border-color: var(--border-default); }
-@media (hover: hover) { .button--secondary:hover:not(:disabled) { color: var(--text-primary); border-color: var(--border-muted); } }
+.button--secondary { background: transparent; color: var(--accent-primary); border-color: var(--accent-primary); }
+@media (hover: hover) { .button--secondary:hover:not(:disabled) { background: color-mix(in srgb, var(--accent-primary) 12%, transparent); } }
 .button--block { width: 100%; }
 
 .alert {
