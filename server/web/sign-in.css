@@ -4,6 +4,7 @@ body { display: grid; place-items: center; padding: 96px 16px 48px; }
 .sign-in-head h1 { margin: 0; font-weight: 700; }
 
 @media (width < 600px) {
+  body { --input-background: var(--surface-panel); }
   .sign-in-head {
     gap: 24px;
     --wordmark-gap: 12px;
