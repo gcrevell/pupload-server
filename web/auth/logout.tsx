@@ -41,7 +41,7 @@ function SignOutPage() {
           {signedOut ? (
             <>
               <RedirectCountdown />
-              <a class="button button--primary button--block" href="/auth/login">Sign in again</a>
+              <a class="button button--secondary button--block" href="/auth/login">Sign in again</a>
             </>
           ) : (
             <>
