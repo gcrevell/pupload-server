@@ -1,5 +1,8 @@
 import type { TargetedSubmitEvent } from 'preact'
 import { useLayoutEffect, useRef } from 'preact/hooks'
+import { Alert } from '../../components/alert.tsx'
+import { Button } from '../../components/button.tsx'
+import { Field } from '../../components/field.tsx'
 import { useSignIn } from './use-sign-in.ts'
 
 export function SignInForm() {
@@ -18,16 +21,10 @@ export function SignInForm() {
 
   return (
     <form class="stack sign-in-form" method="post" onSubmit={submit}>
-      <label class="field">
-        <span class="field-label">Username</span>
-        <input class="input" name="username" autocomplete="username" autocapitalize="none" autocorrect={false} spellcheck={false} required disabled={busy} />
-      </label>
-      <label class="field">
-        <span class="field-label">Password</span>
-        <input class="input" name="password" type="password" autocomplete="current-password" required disabled={busy} aria-invalid={error !== null} ref={password} />
-      </label>
-      <p class="alert alert--error" role="alert" hidden={error === null}>{error}</p>
-      <button class="button button--primary button--block" type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
+      <Field label="Username" name="username" autocomplete="username" autocapitalize="none" autocorrect={false} spellcheck={false} required disabled={busy} />
+      <Field label="Password" name="password" type="password" autocomplete="current-password" required disabled={busy} aria-invalid={error !== null} ref={password} />
+      <Alert message={error} />
+      <Button primary block type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</Button>
     </form>
   )
 }
