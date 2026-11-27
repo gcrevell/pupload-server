@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert'
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { after, test } from 'node:test'
@@ -25,6 +25,15 @@ test('a missing settings file is written with the defaults', () => {
   assert.equal(created, true)
   assert.deepEqual(settings, { port: 7875 })
   assert.deepEqual(JSON.parse(readFileSync(file, 'utf8')), defaultSettings)
+})
+
+test('a config folder Pupload cannot write to is refused, naming the user and the folder', { skip: process.getuid() === 0 && 'root can write anywhere' }, () => {
+  const locked = join(dir, 'locked')
+  mkdirSync(locked, { mode: 0o500 })
+  assert.throws(
+    () => loadSettings(join(locked, 'settings.json')),
+    (err) => err instanceof SettingsError && err.message.includes(`Pupload runs as user ${process.getuid()}, so let it write to ${locked}:`),
+  )
 })
 
 test('an existing settings file is read and left alone', () => {
