@@ -43,4 +43,18 @@ for (const picker of document.querySelectorAll('.theme-picker')) {
       closeTimer = setTimeout(() => setOpen(false, { returnFocus: true }), 200)
     })
   }
+  picker.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && isOpen()) return setOpen(false, { returnFocus: true })
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key]
+    const index = options.indexOf(document.activeElement)
+    if (step === undefined || index === -1) return
+    event.preventDefault()
+    options[(index + step + options.length) % options.length].focus()
+  })
+  picker.addEventListener('focusout', (event) => {
+    if (event.relatedTarget !== null && !picker.contains(event.relatedTarget)) setOpen(false)
+  })
+  document.addEventListener('pointerdown', (event) => {
+    if (isOpen() && !picker.contains(event.target)) setOpen(false)
+  })
 }
