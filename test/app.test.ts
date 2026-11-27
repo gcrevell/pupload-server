@@ -9,7 +9,7 @@ let base: string
 
 before(async () => {
   app = await startApp({
-    routes: [...v1Routes, { method: 'GET', path: '/api/test/ping', handle: () => ({ pong: true }) }],
+    routes: [...v1Routes, { method: 'GET', path: '/api/test/ping', handle: () => ({ body: { pong: true } }) }],
   })
   base = app.base
 })
