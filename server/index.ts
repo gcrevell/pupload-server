@@ -1,26 +1,34 @@
 import { createServer } from 'node:http'
 import { handleRequest } from './app.ts'
+import { loadSettings, settingsFile } from './settings/load-settings.ts'
+import { SettingsError } from './settings/settings-error.ts'
 
 function fail(message: string): never {
   process.stderr.write(`Pupload didn't start. ${message}\n`)
   process.exit(1)
 }
 
-function port(): number {
-  const value = process.env.PORT ?? '8080'
-  const number = Number(value)
-  if (!/^\d+$/.test(value) || number > 65535) fail(`PORT is "${value}". Set it to a port number such as 8080.`)
-  return number
+function load(file: string): ReturnType<typeof loadSettings> {
+  try {
+    return loadSettings(file)
+  } catch (err) {
+    if (err instanceof SettingsError) fail(err.message)
+    throw err
+  }
 }
 
-const listenOn = port()
+const file = settingsFile()
+const { settings, created } = load(file)
+if (created) process.stdout.write(`Wrote the default settings to ${file}.\n`)
+
+const { port } = settings
 const server = createServer(handleRequest)
 server.on('error', (err: NodeJS.ErrnoException) => {
-  if (err.code === 'EADDRINUSE') fail(`Port ${listenOn} is already in use. Stop whatever is using it, or set PORT to a free port.`)
+  if (err.code === 'EADDRINUSE') fail(`Port ${port} is already in use. Stop whatever is using it, or change "port" in ${file}.`)
   fail(err.stack ?? err.message)
 })
-server.listen(listenOn, () => {
-  process.stdout.write(`Pupload is listening on port ${listenOn}.\n`)
+server.listen(port, () => {
+  process.stdout.write(`Pupload is listening on port ${port}, with its settings in ${file}.\n`)
 })
 
 process.on('SIGTERM', () => {

@@ -18,7 +18,17 @@ It needs Node 25 or newer, and has no dependencies to install.
 npm start
 ```
 
-It listens on port 8080, or on `PORT` if that's set. `GET /` answers `hello world`.
+It listens on port 7875. `GET /` answers `hello world`.
+
+## Settings
+
+Pupload keeps its settings in `settings.json` in its config folder. The first time it starts, it writes the file with the defaults. A setting left out of the file uses its default, and Pupload won't start if one is wrong.
+
+The config folder is `config/` in the folder Pupload runs from, or `PUPLOAD_CONFIG_DIR` if that's set.
+
+| Setting | Default | What it sets |
+| --- | --- | --- |
+| `port` | `7875` | The port Pupload listens on |
 
 ## Testing a change
 
