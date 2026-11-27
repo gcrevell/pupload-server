@@ -9,6 +9,6 @@
   },
   "scripts": {
     "start": "node server/index.ts",
-    "test": "node --test"
+    "test": "node --test \"test/*.test.ts\""
   }
 }
