@@ -12,6 +12,7 @@ import type { Route } from './api/route.ts'
 import { defaultSettings } from './settings/default-settings.ts'
 import type { Settings } from './settings/settings.ts'
 import { authenticate } from './sessions/authenticate.ts'
+import { currentSession } from './sessions/current-session.ts'
 import { sessionCookies } from './sessions/session-cookie.ts'
 import { createSignInLimiter } from './sessions/sign-in-limiter.ts'
 import { listWebFiles, type WebFile } from './web-files.ts'
@@ -40,7 +41,7 @@ export function createApp(options: AppOptions): (req: IncomingMessage, res: Serv
 
 async function respond(allRoutes: Route[], webFiles: Map<string, WebFile>, context: AppContext, req: IncomingMessage, res: ServerResponse): Promise<void> {
   const pathname = pathnameOf(req)
-  if (req.method === 'GET' && pathname === '/') return sendText(res, 200, 'hello world\n')
+  if (req.method === 'GET' && pathname === '/') return sendHome(req, res, context)
   const webFile = webFiles.get(pathname)
   if (webFile !== undefined) return sendWebFile(req, res, pathname, webFile)
   if (isCrossSite(req)) return sendError(res, pathname, 403, 'Pupload only accepts this from its own pages.')
@@ -60,6 +61,13 @@ async function respond(allRoutes: Route[], webFiles: Map<string, WebFile>, conte
     if (err instanceof HttpError) return sendError(res, pathname, err.status, err.message, err.headers)
     throw err
   }
+}
+
+function sendHome(req: IncomingMessage, res: ServerResponse, context: AppContext): void {
+  const { token, session } = currentSession(req.headers.cookie, context)
+  if (session !== undefined) return sendText(res, 200, 'hello world\n')
+  res.writeHead(302, { Location: '/auth/login', ...(token === undefined ? {} : { 'Set-Cookie': context.cookies.cleared }) })
+  res.end()
 }
 
 function withCookie(response: ApiResponse, cookie: string | undefined): ApiResponse {

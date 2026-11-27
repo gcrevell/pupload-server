@@ -21,7 +21,7 @@ docker build -t pupload .
 docker run -d --name pupload --read-only -v pupload-config:/config -p 7875:7875 pupload
 ```
 
-It listens on port 7875, with its sign-in page at `/auth/login`. `GET /` still answers `hello world`, which is where signing in lands for now, and the container reports healthy once `GET /api/v1/info` answers. To use another port in Docker, change the host side of `-p` and leave `port` in the settings at 7875, which is where the image expects it.
+It listens on port 7875, with its sign-in page at `/auth/login`. `GET /` sends you there until you've signed in, and answers `hello world` after, which is where signing in lands for now. The container reports healthy once `GET /api/v1/info` answers. To use another port in Docker, change the host side of `-p` and leave `port` in the settings at 7875, which is where the image expects it.
 
 Without Docker, it needs Node 26 or newer. Install its dependencies, then start it, which builds the web UI first:
 
