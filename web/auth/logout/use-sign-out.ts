@@ -7,7 +7,7 @@ async function deleteSession(): Promise<string | null> {
     const response = await fetch('/api/v1/sessions/current', { method: 'DELETE' })
     const alreadySignedOut = response.status === 401
     if (response.ok || alreadySignedOut) return null
-    const body = await response.json().catch(() => ({}))
+    const body = await response.json().catch(() => ({})) as { error?: string }
     return body.error ?? "Pupload couldn't sign you out. Try again."
   } catch {
     return "Couldn't reach Pupload. Check your connection and try again."

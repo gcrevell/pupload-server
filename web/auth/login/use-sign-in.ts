@@ -8,7 +8,7 @@ async function createSession(username: string, password: string): Promise<string
       body: JSON.stringify({ username, password }),
     })
     if (response.ok) return null
-    const body = await response.json().catch(() => ({}))
+    const body = await response.json().catch(() => ({})) as { error?: string }
     return body.error ?? "Pupload couldn't sign you in. Try again."
   } catch {
     return "Couldn't reach Pupload. Check your connection and try again."

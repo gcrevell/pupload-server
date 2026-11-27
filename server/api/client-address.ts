@@ -10,6 +10,6 @@ export function clientAddress(peer: string | undefined, forwardedFor: string | u
 
   const hops = (forwardedFor ?? '').split(',').map(normalizeAddress)
   const client = hops.findLast((hop) => !trusted.includes(hop))
-  if (client === undefined) return hops[0] as string
+  if (client === undefined) return hops[0]
   return isIP(client) === 0 ? from : client
 }

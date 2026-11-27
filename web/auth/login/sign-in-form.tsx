@@ -16,7 +16,7 @@ export function SignInForm() {
   function submit(event: TargetedSubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
-    void signIn(String(form.get('username')), String(form.get('password')))
+    void signIn(form.get('username') as string, form.get('password') as string)
   }
 
   return (

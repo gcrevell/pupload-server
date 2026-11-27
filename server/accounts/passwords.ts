@@ -25,8 +25,8 @@ export async function verifyPassword(password: string, stored: string): Promise<
   if (match === null) return false
   const [m, t, p] = [Number(match[1]), Number(match[2]), Number(match[3])]
   if (m > maxMemory || t > maxPasses || p > maxParallelism) return false
-  const nonce = Buffer.from(match[4] as string, 'base64')
-  const expected = Buffer.from(match[5] as string, 'base64')
+  const nonce = Buffer.from(match[4], 'base64')
+  const expected = Buffer.from(match[5], 'base64')
   try {
     const actual = await argon2Async('argon2id', { message: password.normalize('NFC'), nonce, parallelism: p, tagLength: expected.length, memory: m, passes: t })
     return actual.length === expected.length && timingSafeEqual(actual, expected)

@@ -31,7 +31,7 @@ test('signing in answers 201 with the user and a session cookie', () => withAcco
   assert.equal(user.isAdmin, true)
   const cookies = res.headers.getSetCookie()
   assert.equal(cookies.length, 1)
-  assert.match(cookies[0] as string, /^pupload_session=[A-Za-z0-9_-]{43}; HttpOnly; SameSite=Lax; Path=\/; Max-Age=2592000$/)
+  assert.match(cookies[0], /^pupload_session=[A-Za-z0-9_-]{43}; HttpOnly; SameSite=Lax; Path=\/; Max-Age=2592000$/)
 }))
 
 test('the username works in another case', () => withAccount(async (app) => {
@@ -99,7 +99,7 @@ test('with an https publicUrl, the cookie is Secure and named __Host-pupload_ses
   const res = await signIn(app)
   const cookies = res.headers.getSetCookie()
   assert.equal(cookies.length, 1)
-  assert.match(cookies[0] as string, /^__Host-pupload_session=[A-Za-z0-9_-]{43}; Secure; HttpOnly; SameSite=Lax; Path=\/; Max-Age=2592000$/)
+  assert.match(cookies[0], /^__Host-pupload_session=[A-Za-z0-9_-]{43}; Secure; HttpOnly; SameSite=Lax; Path=\/; Max-Age=2592000$/)
   const token = sessionToken(res)
 
   const signedIn = await fetch(`${app.base}/api/v1/me`, { headers: { Cookie: `__Host-pupload_session=${token}` } })
@@ -116,5 +116,5 @@ test('with an https publicUrl, the cookie is Secure and named __Host-pupload_ses
 
 test('with an http publicUrl, the cookie is the plain one', () => withPublicUrl('http://192.0.2.10:7875', async (app) => {
   const res = await signIn(app)
-  assert.match(res.headers.getSetCookie()[0] as string, /^pupload_session=[A-Za-z0-9_-]{43}; HttpOnly; SameSite=Lax; Path=\/; Max-Age=2592000$/)
+  assert.match(res.headers.getSetCookie()[0], /^pupload_session=[A-Za-z0-9_-]{43}; HttpOnly; SameSite=Lax; Path=\/; Max-Age=2592000$/)
 }))

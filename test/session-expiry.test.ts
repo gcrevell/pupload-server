@@ -12,7 +12,7 @@ const day = 24 * 60 * minute
 const { set: sessionCookie } = sessionCookies(defaultSettings)
 const cleared = 'pupload_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0'
 
-async function withApp(run: (app: StartedApp, token: string, clock: { t: number }) => Promise<void>): Promise<void> {
+async function withApp(run: (app: StartedApp, token: string, clock: { t: number }) => void | Promise<void>): Promise<void> {
   const clock = { t: 0 }
   const app = await startApp({ routes: v1Routes, now: () => clock.t })
   try {
@@ -70,7 +70,7 @@ test('a session unused for 30 days and 1 ms is refused, cleared and deleted', ()
   assert.deepEqual(lastUsed(app), [])
 }))
 
-test('deleteExpiredSessions removes only the expired sessions', () => withApp(async (app) => {
+test('deleteExpiredSessions removes only the expired sessions', () => withApp((app) => {
   const { id } = app.db.prepare(`SELECT id FROM users WHERE username = 'alex'`).get() as { id: number }
   const now = 100 * day
   for (const usedAt of [now - sessionLifetime - 1, now - sessionLifetime, now - sessionLifetime + 1, now]) createSession(app.db, id, usedAt)
