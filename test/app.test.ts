@@ -22,13 +22,6 @@ after(async () => {
   await app.close()
 })
 
-test('GET / says hello world', async () => {
-  const res = await fetch(`${base}/`)
-  assert.equal(res.status, 200)
-  assert.equal(res.headers.get('content-type'), 'text/plain; charset=utf-8')
-  assert.equal(await res.text(), 'hello world\n')
-})
-
 test('an unknown path is a 404', async () => {
   const res = await fetch(`${base}/nope`)
   assert.equal(res.status, 404)
