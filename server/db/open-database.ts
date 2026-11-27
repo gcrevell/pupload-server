@@ -4,7 +4,7 @@ import { configDir, writableFolderAdvice } from '../config-dir.ts'
 import { messageOf } from '../message-of.ts'
 import { DatabaseError } from './database-error.ts'
 import { migrate } from './migrate.ts'
-import { allMigrations } from './migrations.ts'
+import { loadMigrations } from './load-migrations.ts'
 
 export function databaseFile(env: NodeJS.ProcessEnv = process.env): string {
   return join(configDir(env), 'pupload.db')
@@ -13,7 +13,7 @@ export function databaseFile(env: NodeJS.ProcessEnv = process.env): string {
 // SQLite's result codes: 8 is SQLITE_READONLY and 14 is SQLITE_CANTOPEN, and the high bits add detail.
 const cantWriteCodes = [8, 14]
 
-export function openDatabase(file: string, migrations: string[] = allMigrations): DatabaseSync {
+export function openDatabase(file: string, migrations: string[] = loadMigrations()): DatabaseSync {
   let db: DatabaseSync | undefined
   try {
     db = new DatabaseSync(file)

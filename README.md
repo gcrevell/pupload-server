@@ -77,6 +77,8 @@ docker run --rm -v pupload-check-config:/config --entrypoint ls pupload:check /c
 docker rm -f pupload-check && docker volume rm pupload-check-config
 ```
 
+To change the database, add a new file to `server/db/migrations/`, numbered after the last one, like `0002-what-it-does.sql`. Pupload applies the new ones in order when it starts, so never edit a migration that has shipped.
+
 ## License
 
 Pupload is licensed under the [GNU Affero General Public License v3.0](LICENSE), version 3 only. If you run a modified version as a service other people use over a network, you have to offer them its source code.
