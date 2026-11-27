@@ -8,7 +8,7 @@
     "node": ">=26"
   },
   "scripts": {
-    "build": "esbuild 'web/auth/*.tsx' 'web/auth/*.html' --outbase=web --bundle --minify --format=esm --loader:.html=copy --outdir=dist/web",
+    "build": "esbuild 'web/*.css' 'web/auth/*.tsx' 'web/auth/*.css' 'web/auth/*.html' --outbase=web --bundle --minify --format=esm --loader:.html=copy --loader:.css=copy --outdir=dist/web",
     "dev": "npm run build -- --watch",
     "prestart": "npm run build",
     "start": "node server/index.ts",

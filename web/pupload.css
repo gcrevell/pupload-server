@@ -1,0 +1,60 @@
+:root {
+  color-scheme: light dark;
+
+  --surface-page:   light-dark(#F2F2F4, #1C1C1F);
+  --surface-panel:  light-dark(#FFFFFF, #252529);
+  --surface-raised: light-dark(#E9E9ED, #2E2E33);
+  --surface-sunken: light-dark(#F7F7F9, #1C1C1F);
+
+  --border-default: light-dark(#D9D8DF, #3A3A41);
+  --border-muted:   light-dark(#A9A7B6, #5E5E68);
+
+  --text-primary:   light-dark(#1A1824, #EEEDF9);
+  --text-secondary: light-dark(#4A4759, #BAB8CC);
+  --text-muted:     light-dark(#6B6880, #8E87B0);
+  --text-on-accent: #EEEDF9;
+
+  --accent-primary:       light-dark(#7209B7, #AE50FE);
+  --accent-primary-deep:  #7209B7;
+  --accent-primary-hover: #AE50FE;
+
+  --state-error: light-dark(#C62839, #FF525A);
+
+  --radius-control: 8px;
+  --radius-panel: 14px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--wordmark-gap, 10px);
+  font-weight: 700;
+  font-size: var(--wordmark-font-size, 18px);
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+}
+.wordmark-tile {
+  --tint: color-mix(in srgb, var(--accent-primary) 18%, transparent);
+  display: grid;
+  width: var(--wordmark-tile-size, 32px);
+  height: var(--wordmark-tile-size, 32px);
+  border-radius: var(--wordmark-tile-radius, 9px);
+  background: linear-gradient(light-dark(var(--tint), #24192F), light-dark(var(--tint), #1C1127));
+  color: var(--accent-primary);
+}
+.wordmark-tile svg { width: 100%; height: 100%; }
