@@ -46,7 +46,7 @@ if (!hasAccounts(db)) {
 }
 
 const { port } = settings
-const server = createServer(createApp({ routes: v1Routes, db, setupCode }))
+const server = createServer(createApp({ routes: v1Routes, db, setupCode, settings }))
 server.on('error', (err: NodeJS.ErrnoException) => {
   if (err.code === 'EADDRINUSE') fail(`Port ${port} is already in use. Stop whatever is using it, or change "port" in ${file}.`)
   fail(err.stack ?? err.message)

@@ -8,6 +8,8 @@ import { isCrossSite } from './api/cross-site.ts'
 import { HttpError } from './api/http-error.ts'
 import { readJson } from './api/read-json.ts'
 import type { Route } from './api/route.ts'
+import { defaultSettings } from './settings/default-settings.ts'
+import type { Settings } from './settings/settings.ts'
 import { authenticate } from './sessions/authenticate.ts'
 import { createSignInLimiter } from './sessions/sign-in-limiter.ts'
 
@@ -16,11 +18,12 @@ export interface AppOptions {
   db: DatabaseSync
   setupCode?: string
   now?: () => number
+  settings?: Settings
 }
 
 export function createApp(options: AppOptions): (req: IncomingMessage, res: ServerResponse) => void {
-  const { db, setupCode, now = Date.now } = options
-  const context: AppContext = { db, setupCode, now, signInLimiter: createSignInLimiter(now) }
+  const { db, setupCode, now = Date.now, settings = defaultSettings } = options
+  const context: AppContext = { db, setupCode, now, settings, signInLimiter: createSignInLimiter(now) }
   return (req, res) => {
     respond(options.routes, context, req, res).catch((err: unknown) => {
       process.stderr.write(`${req.method} ${req.url} failed. ${err instanceof Error ? (err.stack ?? err.message) : String(err)}\n`)
@@ -43,7 +46,7 @@ async function respond(allRoutes: Route[], context: AppContext, req: IncomingMes
     return sendError(res, pathname, 405, `${pathname} only answers ${allowed.join(' and ')}.`, { Allow: allowed.join(', ') })
   }
   try {
-    const request = apiRequest(req)
+    const request = apiRequest(req, context)
     const refreshedCookie = authenticate(route, request, context)
     sendResponse(res, withCookie(await route.handle(request, context), refreshedCookie))
   } catch (err) {
@@ -57,12 +60,12 @@ function withCookie(response: ApiResponse, cookie: string | undefined): ApiRespo
   return { ...response, headers: { ...response.headers, 'Set-Cookie': cookie } }
 }
 
-function apiRequest(req: IncomingMessage): ApiRequest {
+function apiRequest(req: IncomingMessage, { settings }: AppContext): ApiRequest {
   let body: Promise<Record<string, unknown>> | undefined
   return {
     req,
     url: new URL(req.url ?? '/', 'http://localhost'),
-    ip: clientAddress(req.socket.remoteAddress),
+    ip: clientAddress(req.socket.remoteAddress, req.headers['x-forwarded-for']?.toString(), settings.trustedProxies),
     json: () => (body ??= readJson(req)),
     user: undefined,
     sessionId: undefined,

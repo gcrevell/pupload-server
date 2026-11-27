@@ -1,6 +1,7 @@
 import { strict as assert } from 'node:assert'
 import { test } from 'node:test'
 import { v1Routes } from '../server/api/v1/routes.ts'
+import { defaultSettings } from '../server/settings/default-settings.ts'
 import { createAccount, password, signIn } from './helpers/sign-in.ts'
 import { startApp, type StartedApp } from './helpers/start-app.ts'
 
@@ -76,4 +77,25 @@ test('nine failures, a success, then nine more are not paused', () => withApp(as
   for (let i = 0; i < 9; i++) await signIn(app, { password: 'wrong' })
   assert.equal((await signIn(app)).status, 201)
   for (let i = 0; i < 9; i++) assert.equal((await signIn(app, { password: 'wrong' })).status, 401)
+}))
+
+async function failTenTimesFrom(app: StartedApp, forwardedFor: string): Promise<void> {
+  for (let i = 0; i < 10; i++) assert.equal((await signIn(app, { password: 'wrong' }, { 'X-Forwarded-For': forwardedFor })).status, 401)
+}
+
+test('behind a trusted proxy, each X-Forwarded-For address has its own limit', async () => {
+  const app = await startApp({ routes: v1Routes, settings: { ...defaultSettings, trustedProxies: ['127.0.0.1'] } })
+  try {
+    await createAccount(app)
+    await failTenTimesFrom(app, '203.0.113.7')
+    assert.equal((await signIn(app, { password: 'wrong' }, { 'X-Forwarded-For': '203.0.113.7' })).status, 429)
+    assert.equal((await signIn(app, { password: 'wrong' }, { 'X-Forwarded-For': '198.51.100.4' })).status, 401)
+  } finally {
+    await app.close()
+  }
+})
+
+test('without trusted proxies, X-Forwarded-For is ignored and the addresses share one limit', () => withApp(async (app) => {
+  await failTenTimesFrom(app, '203.0.113.7')
+  assert.equal((await signIn(app, { password: 'wrong' }, { 'X-Forwarded-For': '198.51.100.4' })).status, 429)
 }))

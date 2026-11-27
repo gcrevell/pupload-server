@@ -7,14 +7,14 @@ export async function createAccount(app: StartedApp, username = 'alex'): Promise
   if (res.status !== 201) throw new Error(`Setup answered ${res.status}.`)
 }
 
-export function signIn(app: StartedApp, fields: Record<string, unknown> = {}): Promise<Response> {
-  return post(app, '/api/v1/sessions', { username: 'alex', password, ...fields })
+export function signIn(app: StartedApp, fields: Record<string, unknown> = {}, headers: Record<string, string> = {}): Promise<Response> {
+  return post(app, '/api/v1/sessions', { username: 'alex', password, ...fields }, headers)
 }
 
-function post(app: StartedApp, path: string, body: Record<string, unknown>): Promise<Response> {
+function post(app: StartedApp, path: string, body: Record<string, unknown>, headers: Record<string, string> = {}): Promise<Response> {
   return fetch(`${app.base}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...headers },
     body: JSON.stringify(body),
   })
 }

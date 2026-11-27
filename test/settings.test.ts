@@ -23,7 +23,7 @@ test('a missing settings file is written with the defaults', () => {
   const file = join(dir, 'new', 'settings.json')
   const { settings, created } = loadSettings(file)
   assert.equal(created, true)
-  assert.deepEqual(settings, { port: 7875 })
+  assert.deepEqual(settings, { port: 7875, trustedProxies: [] })
   assert.deepEqual(JSON.parse(readFileSync(file, 'utf8')), defaultSettings)
 })
 
@@ -39,12 +39,12 @@ test('a config folder Pupload cannot write to is refused, naming the user and th
 test('an existing settings file is read and left alone', () => {
   const file = join(dir, 'settings.json')
   writeFileSync(file, '{"port": 9000}')
-  assert.deepEqual(loadSettings(file), { settings: { port: 9000 }, created: false })
+  assert.deepEqual(loadSettings(file), { settings: { port: 9000, trustedProxies: [] }, created: false })
   assert.equal(readFileSync(file, 'utf8'), '{"port": 9000}')
 })
 
 test('a setting left out uses its default', () => {
-  assert.deepEqual(parseSettings('{}', 'settings.json'), { port: 7875 })
+  assert.deepEqual(parseSettings('{}', 'settings.json'), { port: 7875, trustedProxies: [] })
 })
 
 test('a settings file that is not a JSON object is refused', () => {
@@ -58,4 +58,21 @@ test('an unknown setting is refused', () => {
 
 test('a port that is not a port number is refused', () => {
   for (const port of ['"7875"', '0', '65536', '80.5', 'null']) refuses(`{"port": ${port}}`, `"port" in settings.json is ${port}.`)
+})
+
+test('trusted proxies are stored without ::ffff: and in lower case', () => {
+  assert.deepEqual(parseSettings('{"trustedProxies": ["192.0.2.10", "::ffff:198.51.100.4", " 2001:DB8::1 "]}', 'settings.json').trustedProxies, ['192.0.2.10', '198.51.100.4', '2001:db8::1'])
+})
+
+test('trusted proxies that are not a list of addresses are refused', () => {
+  for (const value of ['"192.0.2.10"', '[7875]', '["192.0.2"]', '["proxy.example.com"]', '["::ffff:"]', 'null']) {
+    refuses(`{"trustedProxies": ${value}}`, `"trustedProxies" in settings.json is ${value}. Set it to a list of the addresses of the proxies in front of Pupload, like ["192.0.2.10"].`)
+  }
+})
+
+test('changing the settings a new file returns does not change the defaults', () => {
+  const { settings } = loadSettings(join(dir, 'fresh', 'settings.json'))
+  settings.trustedProxies.push('192.0.2.10')
+  assert.deepEqual(defaultSettings.trustedProxies, [])
+  assert.deepEqual(parseSettings('{}', 'settings.json').trustedProxies, [])
 })
