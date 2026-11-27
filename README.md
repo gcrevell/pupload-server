@@ -46,6 +46,7 @@ The config folder is `config/` in the folder Pupload runs from, or `PUPLOAD_CONF
 | Setting | Default | What it sets |
 | --- | --- | --- |
 | `port` | `7875` | The port Pupload listens on |
+| `publicUrl` | `null` | The address people open Pupload at, like `https://pupload.example.com`. With `https://`, the session cookie is `Secure` and named `__Host-pupload_session`. Changing it between `http` and `https`, or changing the host, signs everyone out once |
 | `trustedProxies` | `[]` | The addresses of reverse proxies whose `X-Forwarded-For` Pupload believes, for example Caddy's. Without it, every request through a proxy counts as coming from the proxy, so the sign-in limit would pause everyone together |
 
 ## Data

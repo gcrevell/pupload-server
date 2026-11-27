@@ -11,6 +11,7 @@ import type { Route } from './api/route.ts'
 import { defaultSettings } from './settings/default-settings.ts'
 import type { Settings } from './settings/settings.ts'
 import { authenticate } from './sessions/authenticate.ts'
+import { sessionCookies } from './sessions/session-cookie.ts'
 import { createSignInLimiter } from './sessions/sign-in-limiter.ts'
 
 export interface AppOptions {
@@ -23,7 +24,7 @@ export interface AppOptions {
 
 export function createApp(options: AppOptions): (req: IncomingMessage, res: ServerResponse) => void {
   const { db, setupCode, now = Date.now, settings = defaultSettings } = options
-  const context: AppContext = { db, setupCode, now, settings, signInLimiter: createSignInLimiter(now) }
+  const context: AppContext = { db, setupCode, now, settings, cookies: sessionCookies(settings), signInLimiter: createSignInLimiter(now) }
   return (req, res) => {
     respond(options.routes, context, req, res).catch((err: unknown) => {
       process.stderr.write(`${req.method} ${req.url} failed. ${err instanceof Error ? (err.stack ?? err.message) : String(err)}\n`)

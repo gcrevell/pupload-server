@@ -23,7 +23,7 @@ test('a missing settings file is written with the defaults', () => {
   const file = join(dir, 'new', 'settings.json')
   const { settings, created } = loadSettings(file)
   assert.equal(created, true)
-  assert.deepEqual(settings, { port: 7875, trustedProxies: [] })
+  assert.deepEqual(settings, { port: 7875, trustedProxies: [], publicUrl: null })
   assert.deepEqual(JSON.parse(readFileSync(file, 'utf8')), defaultSettings)
 })
 
@@ -39,12 +39,12 @@ test('a config folder Pupload cannot write to is refused, naming the user and th
 test('an existing settings file is read and left alone', () => {
   const file = join(dir, 'settings.json')
   writeFileSync(file, '{"port": 9000}')
-  assert.deepEqual(loadSettings(file), { settings: { port: 9000, trustedProxies: [] }, created: false })
+  assert.deepEqual(loadSettings(file), { settings: { port: 9000, trustedProxies: [], publicUrl: null }, created: false })
   assert.equal(readFileSync(file, 'utf8'), '{"port": 9000}')
 })
 
 test('a setting left out uses its default', () => {
-  assert.deepEqual(parseSettings('{}', 'settings.json'), { port: 7875, trustedProxies: [] })
+  assert.deepEqual(parseSettings('{}', 'settings.json'), { port: 7875, trustedProxies: [], publicUrl: null })
 })
 
 test('a settings file that is not a JSON object is refused', () => {
@@ -75,4 +75,16 @@ test('changing the settings a new file returns does not change the defaults', ()
   settings.trustedProxies.push('192.0.2.10')
   assert.deepEqual(defaultSettings.trustedProxies, [])
   assert.deepEqual(parseSettings('{}', 'settings.json').trustedProxies, [])
+})
+
+test('a public URL is stored as its origin', () => {
+  assert.equal(parseSettings('{"publicUrl": null}', 'settings.json').publicUrl, null)
+  assert.equal(parseSettings('{"publicUrl": "http://192.0.2.10:7875"}', 'settings.json').publicUrl, 'http://192.0.2.10:7875')
+  assert.equal(parseSettings('{"publicUrl": "https://pupload.example.com/"}', 'settings.json').publicUrl, 'https://pupload.example.com')
+})
+
+test('a public URL that is not an http or https origin is refused', () => {
+  for (const value of ['"pupload.example.com"', '"ftp://pupload.example.com"', '"https://pupload.example.com/photos"', '"https://pupload.example.com/?a=1"', '"https://pupload.example.com/#top"', '"https://alex:pw@pupload.example.com"', '7875']) {
+    refuses(`{"publicUrl": ${value}}`, `"publicUrl" in settings.json is ${value}. Set it to the address people open Pupload at, like "https://pupload.example.com", or null.`)
+  }
 })
