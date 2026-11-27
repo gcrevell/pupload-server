@@ -25,6 +25,9 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -126,4 +129,61 @@ body {
 .alert--error {
   background: color-mix(in srgb, var(--state-error) 15%, transparent);
   color: var(--state-error);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.theme-picker { position: relative; display: inline-flex; }
+.theme-picker-trigger { position: relative; z-index: 1; }
+.theme-picker-trigger,
+.theme-picker-option {
+  -webkit-tap-highlight-color: transparent;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border-default);
+  border-radius: 22px;
+  background: var(--surface-panel);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.theme-picker[data-open] .theme-picker-trigger { background: var(--surface-raised); color: var(--text-primary); }
+.theme-picker-trigger:focus-visible,
+.theme-picker-option:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+.theme-picker-icons { display: grid; }
+.theme-picker-icons svg { grid-area: 1 / 1; width: 20px; height: 20px; opacity: 0; }
+:root:not([data-theme]) .theme-picker-icons [data-icon="auto"],
+:root[data-theme="light"] .theme-picker-icons [data-icon="light"],
+:root[data-theme="dark"] .theme-picker-icons [data-icon="dark"],
+.theme-picker[data-open] .theme-picker-icons [data-icon="close"] { opacity: 1; }
+.theme-picker[data-open] .theme-picker-icons svg:not([data-icon="close"]) { opacity: 0; }
+
+.theme-picker-options { position: absolute; inset: 0; visibility: hidden; }
+.theme-picker[data-open] .theme-picker-options { visibility: visible; }
+.theme-picker-option {
+  --angle: 180deg;
+  position: absolute;
+  inset: 0;
+  transform: rotate(var(--angle)) translateX(76px) rotate(calc(-1 * var(--angle)));
+}
+.theme-picker-option:nth-child(2) { --angle: 135deg; }
+.theme-picker-option:nth-child(3) { --angle: 90deg; }
+.theme-picker-option svg { width: 18px; height: 18px; }
+@media (hover: hover) {
+  .theme-picker-trigger:hover,
+  .theme-picker-option:hover { color: var(--text-primary); border-color: var(--border-muted); }
+}
+.theme-picker-option[aria-pressed="true"] {
+  border-color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 18%, var(--surface-panel));
+  color: var(--accent-primary);
 }
