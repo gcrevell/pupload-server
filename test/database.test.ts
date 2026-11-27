@@ -71,7 +71,7 @@ test('a file database is in WAL mode, with foreign keys on', () => {
   db.close()
 })
 
-test('a folder Pupload cannot write to is refused, naming the user and the folder', { skip: process.getuid() === 0 && 'root can write anywhere' }, () => {
+test('a folder Pupload cannot write to is refused, naming the user and the folder', { skip: process.getuid?.() === 0 && 'root can write anywhere' }, () => {
   const locked = join(dir, 'locked')
   mkdirSync(locked)
   const file = join(locked, 'pupload.db')
@@ -82,7 +82,7 @@ test('a folder Pupload cannot write to is refused, naming the user and the folde
       () => openDatabase(file, []),
       (err) => err instanceof DatabaseError
         && err.message.startsWith(`Couldn't open ${file}. attempt to write a readonly database.`)
-        && err.message.includes(`Pupload runs as user ${process.getuid()}, so let it write to ${locked}:`),
+        && err.message.includes(`Pupload runs as user ${process.getuid?.()}, so let it write to ${locked}:`),
     )
   } finally {
     chmodSync(locked, 0o700)

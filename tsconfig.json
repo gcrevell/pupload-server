@@ -6,6 +6,7 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "module": "preserve",
-    "target": "esnext"
+    "target": "esnext",
+    "types": ["node"]
   }
 }
