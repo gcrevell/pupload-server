@@ -1,8 +1,8 @@
 import type { InputHTMLAttributes } from 'preact'
 
-type FieldProps = InputHTMLAttributes<HTMLInputElement> & { label: string }
+type TextFieldProps = InputHTMLAttributes<HTMLInputElement> & { label: string }
 
-export function Field({ label, ...input }: FieldProps) {
+export function TextField({ label, ...input }: TextFieldProps) {
   return (
     <label class="field">
       <span class="field-label">{label}</span>
