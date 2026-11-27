@@ -9,8 +9,8 @@ function SignInPage() {
       <div class="corner">
         <ThemePicker />
       </div>
-      <main class="sign-in">
-        <div class="sign-in-head">
+      <main class="auth-card">
+        <div class="auth-head">
           <Wordmark />
           <h1>Sign in</h1>
         </div>
