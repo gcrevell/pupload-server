@@ -92,9 +92,10 @@ An image gets `PUPLOAD_VERSION` from the build argument of the same name: `docke
 npm ci
 npm test
 npm run typecheck
+npm run lint
 ```
 
-The tests use Node's built-in test runner and start the server on a free port. Node and esbuild only strip the types, so `npm run typecheck` checks them with `tsc`. CI runs both on every PR and every push to `main`.
+The tests use Node's built-in test runner and start the server on a free port. Node and esbuild only strip the types, so `npm run typecheck` checks them with `tsc`. `npm run lint` runs ESLint with typescript-eslint's type-checked rules, and `npm run lint -- --fix` fixes what it can. CI runs all three on every PR and every push to `main`.
 
 The web UI is written in Preact, with its source in `web/`. `npm run build` bundles it with esbuild into `dist/web`, which is what Pupload serves, at the same paths: `auth/login.html` at `/auth/login` and `auth/login.js` at `/auth/login.js`. `npm start` and `npm test` build it first, and `npm run dev` rebuilds on save, to run beside `npm start`. Pupload lists `dist/web` when it starts and reads a file each time it's asked for, so an edit shows on reload and a new page needs a restart. A page's files go in the folder of `web/` that matches its path, like `web/auth/login.tsx` for `/auth/login`, and each of those folders is listed in the `build` script. The parts only one page uses go in a folder named after it, like the sign-in form and its `useSignIn` hook in `web/auth/login/`, so they aren't built as pages of their own. The `/auth` pages share their layout in `web/auth/auth.css`. The components pages share go in `web/components/`, and their styles in `web/pupload.css`. The tests check that every file a page loads is served, but not how the page looks or behaves, so look at a change in a browser too, at phone, tablet and laptop widths, in light and dark mode.
 
