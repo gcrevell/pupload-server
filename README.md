@@ -62,3 +62,7 @@ docker inspect -f '{{.State.Health.Status}}' pupload-check   # healthy within ab
 curl 127.0.0.1:17875/api/v1/info                             # {"version":"dev"}
 docker rm -f pupload-check && docker volume rm pupload-check-config
 ```
+
+## License
+
+Pupload is licensed under the [GNU Affero General Public License v3.0](LICENSE), version 3 only. If you run a modified version as a service other people use over a network, you have to offer them its source code.
