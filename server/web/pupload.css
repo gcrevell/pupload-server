@@ -52,15 +52,15 @@ body {
   color: var(--text-primary);
 }
 .wordmark-tile {
+  --tint: color-mix(in srgb, var(--accent-primary) 18%, transparent);
   display: grid;
-  place-items: center;
   width: var(--wordmark-tile-size, 32px);
   height: var(--wordmark-tile-size, 32px);
   border-radius: var(--wordmark-tile-radius, 9px);
-  background: color-mix(in srgb, var(--accent-primary) 18%, transparent);
+  background: linear-gradient(light-dark(var(--tint), #24192F), light-dark(var(--tint), #1C1127));
   color: var(--accent-primary);
 }
-.wordmark-tile svg { width: var(--wordmark-icon-size, 18px); height: var(--wordmark-icon-size, 18px); }
+.wordmark-tile svg { width: 100%; height: 100%; }
 
 .stack { display: flex; flex-direction: column; gap: var(--stack-gap, 18px); }
 
