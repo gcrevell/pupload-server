@@ -1,6 +1,10 @@
 # Pupload(-server)
 
-This is a self hosted docker image designed to run on a Raspberry Pi 5 to backup your iOS iCloud photos to your own storage. All your photos and data, backed up and filed away. Features:
+This is a self hosted docker image designed to run on a Raspberry Pi 5 to backup your iOS iCloud photos to your own storage. All your photos and data, backed up and filed away.
+
+![The sign-in page in dark mode: the Pupload wordmark and a username and password form on a card](docs/sign-in.png)
+
+Features:
 
 * iCloud aware -- Syncs iOS photo data, including the cloud ID to avoid backing up each photo multiple times
 * Stable backup -- Backups are one-way, so you never have to worry about a photo going missing
