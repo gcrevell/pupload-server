@@ -49,7 +49,7 @@ The API is versioned in its path, starting at `/api/v1`. A new version comes onl
 
 | Endpoint | Returns |
 | --- | --- |
-| `GET /api/v1/info` | `{ "version": "2026.11.3" }`: the server's version, from `PUPLOAD_VERSION`, or `dev` when that isn't set |
+| `GET /api/v1/info` | `{ "version": "2026.11.3", "setupNeeded": false }`: the server's version, from `PUPLOAD_VERSION`, or `dev` when that isn't set, and whether Pupload still needs its first account (`true` until one is made) |
 
 An error under `/api` answers with its HTTP status and a body of `{ "error": "…" }`, where the message is a sentence that can be shown to the person.
 
@@ -71,11 +71,13 @@ For a change to the Dockerfile or how the server starts, check that the image bu
 docker build -t pupload:check .
 docker run -d --name pupload-check --read-only -v pupload-check-config:/config -p 127.0.0.1:17875:7875 pupload:check
 docker inspect -f '{{.State.Health.Status}}' pupload-check   # healthy within about 10 s
-curl 127.0.0.1:17875/api/v1/info                             # {"version":"dev"}
+curl 127.0.0.1:17875/api/v1/info                             # {"version":"dev","setupNeeded":true}
 docker stop pupload-check
 docker run --rm -v pupload-check-config:/config --entrypoint ls pupload:check /config   # lists pupload.db and settings.json, with no -wal left over
 docker rm -f pupload-check && docker volume rm pupload-check-config
 ```
+
+To change the database, add a new file to `server/db/migrations/`, numbered after the last one, like `0002-what-it-does.sql`. Pupload applies the new ones in order when it starts, so never edit a migration that has shipped.
 
 ## License
 

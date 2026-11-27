@@ -30,11 +30,22 @@ test('an unknown path is a 404', async () => {
   assert.equal(res.status, 404)
 })
 
-test('GET /api/v1/info returns the server version', async () => {
+test('GET /api/v1/info returns the server version, and that setup is needed', async () => {
   const res = await fetch(`${base}/api/v1/info`)
   assert.equal(res.status, 200)
   assert.equal(res.headers.get('content-type'), 'application/json; charset=utf-8')
-  assert.deepEqual(await res.json(), { version: serverVersion() })
+  assert.deepEqual(await res.json(), { version: serverVersion(), setupNeeded: true })
+})
+
+test('GET /api/v1/info says setup is not needed once there is an account', async () => {
+  const withAccount = await startApp({ routes: v1Routes })
+  try {
+    withAccount.db.prepare(`INSERT INTO users (username, created_at) VALUES ('alex', 0)`).run()
+    const res = await fetch(`${withAccount.base}/api/v1/info`)
+    assert.deepEqual(await res.json(), { version: serverVersion(), setupNeeded: false })
+  } finally {
+    await withAccount.close()
+  }
 })
 
 test('another method on /api/v1/info is a 405', async () => {
