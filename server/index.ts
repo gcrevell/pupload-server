@@ -1,6 +1,8 @@
 import { createServer } from 'node:http'
 import { v1Routes } from './api/v1/routes.ts'
 import { createApp } from './app.ts'
+import { DatabaseError } from './db/database-error.ts'
+import { databaseFile, openDatabase } from './db/open-database.ts'
 import { loadSettings, settingsFile } from './settings/load-settings.ts'
 import { SettingsError } from './settings/settings-error.ts'
 
@@ -18,22 +20,35 @@ function load(file: string): ReturnType<typeof loadSettings> {
   }
 }
 
+function open(file: string): ReturnType<typeof openDatabase> {
+  try {
+    return openDatabase(file)
+  } catch (err) {
+    if (err instanceof DatabaseError) fail(err.message)
+    throw err
+  }
+}
+
 const file = settingsFile()
 const { settings, created } = load(file)
 if (created) process.stdout.write(`Wrote the default settings to ${file}.\n`)
 
+const dbFile = databaseFile()
+const db = open(dbFile)
+
 const { port } = settings
-const server = createServer(createApp({ routes: v1Routes }))
+const server = createServer(createApp({ routes: v1Routes, db }))
 server.on('error', (err: NodeJS.ErrnoException) => {
   if (err.code === 'EADDRINUSE') fail(`Port ${port} is already in use. Stop whatever is using it, or change "port" in ${file}.`)
   fail(err.stack ?? err.message)
 })
 server.listen(port, () => {
-  process.stdout.write(`Pupload is listening on port ${port}, with its settings in ${file}.\n`)
+  process.stdout.write(`Pupload is listening on port ${port}, with its settings in ${file} and its data in ${dbFile}.\n`)
 })
 
 process.on('SIGTERM', () => {
   server.close()
   server.closeAllConnections()
+  db.close()
   process.exit(0)
 })

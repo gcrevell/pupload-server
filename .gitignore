@@ -4,3 +4,6 @@
 # Claude
 .claude/worktrees/
 .claude/settings.local.json
+
+# Local data
+config/
