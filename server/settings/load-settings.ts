@@ -1,11 +1,13 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { dirname, join } from 'node:path'
+import { configDir, writableFolderAdvice } from '../config-dir.ts'
+import { messageOf } from '../message-of.ts'
 import { defaultSettings } from './default-settings.ts'
 import { SettingsError } from './settings-error.ts'
 import type { Settings } from './settings.ts'
 
 export function settingsFile(env: NodeJS.ProcessEnv = process.env): string {
-  return resolve(env.PUPLOAD_CONFIG_DIR || 'config', 'settings.json')
+  return join(configDir(env), 'settings.json')
 }
 
 export function loadSettings(file: string): { settings: Settings; created: boolean } {
@@ -25,9 +27,7 @@ function writeDefaults(file: string): void {
     mkdirSync(dirname(file), { recursive: true })
     writeFileSync(file, `${JSON.stringify(defaultSettings, null, 2)}\n`, { flag: 'wx' })
   } catch (err) {
-    const dir = dirname(file)
-    const user = process.getuid()
-    throw new SettingsError(`Couldn't write the default settings to ${file}. ${messageOf(err)} Pupload runs as user ${user}, so let it write to ${dir}: in Docker, mount a volume there, or a folder user ${user} owns. Or set PUPLOAD_CONFIG_DIR to a folder it can write to.`)
+    throw new SettingsError(`Couldn't write the default settings to ${file}. ${messageOf(err)} ${writableFolderAdvice(dirname(file))}`)
   }
 }
 
@@ -52,9 +52,4 @@ export function parseSettings(text: string, file: string): Settings {
     throw new SettingsError(`"port" in ${file} is ${JSON.stringify(port)}. Set it to a port number from 1 to 65535.`)
   }
   return { port }
-}
-
-function messageOf(err: unknown): string {
-  const message = err instanceof Error ? err.message : String(err)
-  return /[.!?]$/.test(message) ? message : `${message}.`
 }

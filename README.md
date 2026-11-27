@@ -19,7 +19,7 @@ docker run -d --name pupload --read-only -v pupload-config:/config -p 7875:7875 
 
 It listens on port 7875. `GET /` answers `hello world`, and the container reports healthy once `GET /api/v1/info` answers. To use another port in Docker, change the host side of `-p` and leave `port` in the settings at 7875, which is where the image expects it.
 
-Without Docker, it needs Node 25 or newer, and has no dependencies to install:
+Without Docker, it needs Node 26 or newer, and has no dependencies to install:
 
 ```sh
 npm start
@@ -34,6 +34,14 @@ The config folder is `config/` in the folder Pupload runs from, or `PUPLOAD_CONF
 | Setting | Default | What it sets |
 | --- | --- | --- |
 | `port` | `7875` | The port Pupload listens on |
+
+## Data
+
+Pupload keeps its data in `pupload.db`, a SQLite database beside `settings.json` in the config folder. The folder has to be writable, not just the file, because SQLite keeps `pupload.db-wal` and `pupload.db-shm` beside it while Pupload runs.
+
+To back it up, copy the config folder while Pupload is stopped. While it runs, recent changes can still be in `pupload.db-wal`.
+
+Pupload won't start on a `pupload.db` from a newer version than it knows, for example after going back to an older image. Run the newer image again.
 
 ## API
 
@@ -64,6 +72,8 @@ docker build -t pupload:check .
 docker run -d --name pupload-check --read-only -v pupload-check-config:/config -p 127.0.0.1:17875:7875 pupload:check
 docker inspect -f '{{.State.Health.Status}}' pupload-check   # healthy within about 10 s
 curl 127.0.0.1:17875/api/v1/info                             # {"version":"dev"}
+docker stop pupload-check
+docker run --rm -v pupload-check-config:/config --entrypoint ls pupload:check /config   # lists pupload.db and settings.json, with no -wal left over
 docker rm -f pupload-check && docker volume rm pupload-check-config
 ```
 

@@ -1,6 +1,8 @@
 import type { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from 'node:http'
+import type { DatabaseSync } from 'node:sqlite'
 import type { ApiRequest } from './api/api-request.ts'
 import type { ApiResponse } from './api/api-response.ts'
+import type { AppContext } from './api/app-context.ts'
 import { isCrossSite } from './api/cross-site.ts'
 import { HttpError } from './api/http-error.ts'
 import { readJson } from './api/read-json.ts'
@@ -8,6 +10,7 @@ import type { Route } from './api/route.ts'
 
 export interface AppOptions {
   routes: Route[]
+  db: DatabaseSync
 }
 
 export function createApp(options: AppOptions): (req: IncomingMessage, res: ServerResponse) => void {
@@ -33,7 +36,7 @@ async function respond(options: AppOptions, req: IncomingMessage, res: ServerRes
     return sendError(res, pathname, 405, `${pathname} only answers ${allowed.join(' and ')}.`, { Allow: allowed.join(', ') })
   }
   try {
-    sendResponse(res, await route.handle(apiRequest(req)))
+    sendResponse(res, await route.handle(apiRequest(req), { db: options.db }))
   } catch (err) {
     if (err instanceof HttpError) return sendError(res, pathname, err.status, err.message, err.headers)
     throw err
