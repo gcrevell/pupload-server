@@ -1,0 +1,14 @@
+# Tags every push to main with a CalVer version (vYYYY.M.N).
+# The logic lives in gcrevell/workflows.
+
+name: Version
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  tag:
+    uses: gcrevell/workflows/.github/workflows/calver.yml@main
+    permissions:
+      contents: write
