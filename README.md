@@ -12,19 +12,24 @@ This is a self hosted docker image designed to run on a Raspberry Pi 5 to backup
 
 ## Running it
 
-It needs Node 25 or newer, and has no dependencies to install.
+```sh
+docker build -t pupload .
+docker run -d --name pupload --read-only -v pupload-config:/config -p 7875:7875 pupload
+```
+
+It listens on port 7875. `GET /` answers `hello world`, and the container reports healthy once `GET /api/v1/info` answers. To use another port in Docker, change the host side of `-p` and leave `port` in the settings at 7875, which is where the image expects it.
+
+Without Docker, it needs Node 25 or newer, and has no dependencies to install:
 
 ```sh
 npm start
 ```
 
-It listens on port 7875. `GET /` answers `hello world`.
-
 ## Settings
 
 Pupload keeps its settings in `settings.json` in its config folder. The first time it starts, it writes the file with the defaults. A setting left out of the file uses its default, and Pupload won't start if one is wrong.
 
-The config folder is `config/` in the folder Pupload runs from, or `PUPLOAD_CONFIG_DIR` if that's set.
+The config folder is `config/` in the folder Pupload runs from, or `PUPLOAD_CONFIG_DIR` if that's set. In the image it's `/config`, and a folder mounted there has to be writable by uid 1000, the image's `node` user.
 
 | Setting | Default | What it sets |
 | --- | --- | --- |
@@ -38,6 +43,8 @@ The API is versioned in its path, starting at `/api/v1`. A new version comes onl
 | --- | --- |
 | `GET /api/v1/info` | `{ "version": "2026.11.3" }`: the server's version, from `PUPLOAD_VERSION`, or `dev` when that isn't set |
 
+An image gets `PUPLOAD_VERSION` from the build argument of the same name: `docker build --build-arg PUPLOAD_VERSION=2026.11.3 -t pupload .`
+
 ## Testing a change
 
 ```sh
@@ -45,3 +52,13 @@ npm test
 ```
 
 The tests use Node's built-in test runner and start the server on a free port.
+
+For a change to the Dockerfile or how the server starts, check that the image builds and goes healthy on a read-only filesystem:
+
+```sh
+docker build -t pupload:check .
+docker run -d --name pupload-check --read-only -v pupload-check-config:/config -p 127.0.0.1:17875:7875 pupload:check
+docker inspect -f '{{.State.Health.Status}}' pupload-check   # healthy within about 10 s
+curl 127.0.0.1:17875/api/v1/info                             # {"version":"dev"}
+docker rm -f pupload-check && docker volume rm pupload-check-config
+```
