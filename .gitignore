@@ -7,3 +7,7 @@
 
 # Local data
 config/
+
+# Dependencies and builds
+node_modules/
+dist/

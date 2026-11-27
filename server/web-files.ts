@@ -1,6 +1,8 @@
 import { readdirSync } from 'node:fs'
 import { extname, join, relative, sep } from 'node:path'
 
+export const webDir = join(import.meta.dirname, '..', 'dist', 'web')
+
 const contentTypes: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',

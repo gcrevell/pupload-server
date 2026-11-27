@@ -8,7 +8,17 @@
     "node": ">=26"
   },
   "scripts": {
+    "build": "esbuild 'web/auth/*.tsx' 'web/auth/*.html' --outbase=web --bundle --minify --format=esm --loader:.html=copy --outdir=dist/web",
+    "dev": "npm run build -- --watch",
+    "prestart": "npm run build",
     "start": "node server/index.ts",
+    "pretest": "npm run build",
     "test": "node --test \"test/*.test.ts\""
+  },
+  "dependencies": {
+    "preact": "11.2.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
   }
 }
