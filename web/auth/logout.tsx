@@ -2,7 +2,6 @@ import { render } from 'preact'
 import { useEffect, useState } from 'preact/hooks'
 import { Alert } from '../components/alert.tsx'
 import { Button } from '../components/button.tsx'
-import { ThemePicker } from '../components/theme-picker.tsx'
 import { Wordmark } from '../components/wordmark.tsx'
 import { useSignOut } from './logout/use-sign-out.ts'
 
@@ -27,33 +26,28 @@ function SignOutPage() {
   const signedOut = state.status === 'signed-out'
 
   return (
-    <>
-      <div class="corner">
-        <ThemePicker />
+    <main class="auth-card">
+      <div class="auth-head">
+        <Wordmark />
+        <h1>{signedOut ? 'Signed out' : 'Sign out'}</h1>
       </div>
-      <main class="auth-card">
-        <div class="auth-head">
-          <Wordmark />
-          <h1>{signedOut ? 'Signed out' : 'Sign out'}</h1>
-        </div>
-        <div class="stack">
-          <p class="auth-message" role="status" hidden={!signedOut}>{signedOut && "You've signed out of Pupload."}</p>
-          {signedOut ? (
-            <>
-              <RedirectCountdown />
-              <a class="button button--secondary button--block" href="/auth/login">Sign in again</a>
-            </>
-          ) : (
-            <>
-              <Alert message={state.status === 'failed' ? state.error : null} />
-              <Button variant="primary" block type="button" disabled={state.status === 'signing-out'} onClick={() => void signOut()}>
-                {state.status === 'signing-out' ? 'Signing out…' : 'Try again'}
-              </Button>
-            </>
-          )}
-        </div>
-      </main>
-    </>
+      <div class="stack">
+        <p class="auth-message" role="status" hidden={!signedOut}>{signedOut && "You've signed out of Pupload."}</p>
+        {signedOut ? (
+          <>
+            <RedirectCountdown />
+            <Button variant="secondary" block href="/auth/login">Sign in again</Button>
+          </>
+        ) : (
+          <>
+            <Alert message={state.status === 'failed' ? state.error : null} />
+            <Button variant="primary" block type="button" disabled={state.status === 'signing-out'} onClick={() => void signOut()}>
+              {state.status === 'signing-out' ? 'Signing out…' : 'Try again'}
+            </Button>
+          </>
+        )}
+      </div>
+    </main>
   )
 }
 
