@@ -25,7 +25,9 @@ function writeDefaults(file: string): void {
     mkdirSync(dirname(file), { recursive: true })
     writeFileSync(file, `${JSON.stringify(defaultSettings, null, 2)}\n`, { flag: 'wx' })
   } catch (err) {
-    throw new SettingsError(`Couldn't write the default settings to ${file}. ${messageOf(err)} Set PUPLOAD_CONFIG_DIR to a folder Pupload can write to.`)
+    const dir = dirname(file)
+    const user = process.getuid()
+    throw new SettingsError(`Couldn't write the default settings to ${file}. ${messageOf(err)} Pupload runs as user ${user}, so let it write to ${dir}: in Docker, mount a volume there, or a folder user ${user} owns. Or set PUPLOAD_CONFIG_DIR to a folder it can write to.`)
   }
 }
 
