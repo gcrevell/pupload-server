@@ -59,7 +59,7 @@ export function createSignInLimiter(
             entry.logged = true
             log(`Paused sign-in for ${JSON.stringify(username)} from ${ip} after ${maxAttempts} failures in 15 minutes.`)
           }
-          throw paused(Math.ceil(((entry.times[0] as number) + windowMs - at) / 1000))
+          throw paused(Math.ceil(((entry.times[0]) + windowMs - at) / 1000))
         }
       } else if (entries.size >= maxKeys) {
         if (!fullLogged) {

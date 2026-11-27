@@ -11,7 +11,7 @@ export function migrate(db: DatabaseSync, migrations: string[]): void {
   for (let n = applied + 1; n <= migrations.length; n++) {
     db.exec('BEGIN')
     try {
-      db.exec(migrations[n - 1] as string)
+      db.exec(migrations[n - 1])
       db.exec(`PRAGMA user_version = ${n}`)
       db.exec('COMMIT')
     } catch (err) {
