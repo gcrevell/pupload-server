@@ -3,10 +3,12 @@ import type { DatabaseSync } from 'node:sqlite'
 import type { ApiRequest } from './api/api-request.ts'
 import type { ApiResponse } from './api/api-response.ts'
 import type { AppContext } from './api/app-context.ts'
+import { clientAddress } from './api/client-address.ts'
 import { isCrossSite } from './api/cross-site.ts'
 import { HttpError } from './api/http-error.ts'
 import { readJson } from './api/read-json.ts'
 import type { Route } from './api/route.ts'
+import { createSignInLimiter } from './sessions/sign-in-limiter.ts'
 
 export interface AppOptions {
   routes: Route[]
@@ -16,8 +18,10 @@ export interface AppOptions {
 }
 
 export function createApp(options: AppOptions): (req: IncomingMessage, res: ServerResponse) => void {
+  const { db, setupCode, now = Date.now } = options
+  const context: AppContext = { db, setupCode, now, signInLimiter: createSignInLimiter(now) }
   return (req, res) => {
-    respond(options, req, res).catch((err: unknown) => {
+    respond(options.routes, context, req, res).catch((err: unknown) => {
       process.stderr.write(`${req.method} ${req.url} failed. ${err instanceof Error ? (err.stack ?? err.message) : String(err)}\n`)
       if (res.headersSent) res.destroy()
       else sendError(res, pathnameOf(req), 500, 'Something went wrong on the server. Its log has the details.')
@@ -25,12 +29,12 @@ export function createApp(options: AppOptions): (req: IncomingMessage, res: Serv
   }
 }
 
-async function respond(options: AppOptions, req: IncomingMessage, res: ServerResponse): Promise<void> {
+async function respond(allRoutes: Route[], context: AppContext, req: IncomingMessage, res: ServerResponse): Promise<void> {
   const pathname = pathnameOf(req)
   if (req.method === 'GET' && pathname === '/') return sendText(res, 200, 'hello world\n')
   if (isCrossSite(req)) return sendError(res, pathname, 403, 'Pupload only accepts this from its own pages.')
 
-  const routes = options.routes.filter((route) => route.path === pathname)
+  const routes = allRoutes.filter((route) => route.path === pathname)
   const route = routes.find((candidate) => candidate.method === req.method)
   if (route === undefined) {
     if (routes.length === 0) return sendError(res, pathname, 404, `There's nothing at ${pathname}.`)
@@ -38,15 +42,11 @@ async function respond(options: AppOptions, req: IncomingMessage, res: ServerRes
     return sendError(res, pathname, 405, `${pathname} only answers ${allowed.join(' and ')}.`, { Allow: allowed.join(', ') })
   }
   try {
-    sendResponse(res, await route.handle(apiRequest(req), context(options)))
+    sendResponse(res, await route.handle(apiRequest(req), context))
   } catch (err) {
     if (err instanceof HttpError) return sendError(res, pathname, err.status, err.message, err.headers)
     throw err
   }
-}
-
-function context({ db, setupCode, now = Date.now }: AppOptions): AppContext {
-  return { db, setupCode, now }
 }
 
 function apiRequest(req: IncomingMessage): ApiRequest {
@@ -54,6 +54,7 @@ function apiRequest(req: IncomingMessage): ApiRequest {
   return {
     req,
     url: new URL(req.url ?? '/', 'http://localhost'),
+    ip: clientAddress(req.socket.remoteAddress),
     json: () => (body ??= readJson(req)),
   }
 }
