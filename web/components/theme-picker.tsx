@@ -1,9 +1,10 @@
-import type { SVGAttributes } from 'preact'
+import type { SVGAttributes, TargetedFocusEvent, TargetedKeyboardEvent } from 'preact'
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks'
 import { applyTheme, currentTheme, type Theme } from './theme.ts'
 
 const themes: Theme[] = ['auto', 'light', 'dark']
 const titles: Record<Theme, string> = { auto: 'Auto', light: 'Light', dark: 'Dark' }
+const steps: Record<string, number | undefined> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }
 
 const shapes = {
   auto: () => <><circle cx="12" cy="12" r="8" /><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none" /></>,
@@ -23,6 +24,7 @@ function Icon({ name, ...svg }: SVGAttributes<SVGSVGElement> & { name: keyof typ
 export function ThemePicker() {
   const [theme, setTheme] = useState(currentTheme)
   const [open, setOpen] = useState(false)
+  const picker = useRef<HTMLDivElement>(null)
   const trigger = useRef<HTMLButtonElement>(null)
   const panel = useRef<HTMLDivElement>(null)
   const closeTimer = useRef(0)
@@ -39,14 +41,37 @@ export function ThemePicker() {
     closeTimer.current = window.setTimeout(() => show(false, { returnFocus: true }), 200)
   }
 
+  function moveFocus(event: TargetedKeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Escape' && open) return show(false, { returnFocus: true })
+    const step = steps[event.key]
+    const options = [...panel.current!.children] as HTMLElement[]
+    const index = options.indexOf(document.activeElement as HTMLElement)
+    if (step === undefined || index === -1) return
+    event.preventDefault()
+    options[(index + step + options.length) % options.length].focus()
+  }
+
+  function closeOnFocusOutside(event: TargetedFocusEvent<HTMLDivElement>) {
+    if (event.relatedTarget !== null && !event.currentTarget.contains(event.relatedTarget as Node)) show(false)
+  }
+
   useLayoutEffect(() => {
     if (open) panel.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus()
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    function closeOnPointerOutside(event: PointerEvent) {
+      if (!picker.current?.contains(event.target as Node)) show(false)
+    }
+    document.addEventListener('pointerdown', closeOnPointerOutside)
+    return () => document.removeEventListener('pointerdown', closeOnPointerOutside)
   }, [open])
 
   useEffect(() => () => clearTimeout(closeTimer.current), [])
 
   return (
-    <div class="theme-picker" data-open={open || undefined}>
+    <div class="theme-picker" data-open={open || undefined} onKeyDown={moveFocus} onFocusOut={closeOnFocusOutside} ref={picker}>
       <button class="theme-picker-trigger" type="button" aria-expanded={open} aria-controls="theme-options" aria-label={`Theme: ${titles[theme]}`} onClick={() => show(!open)} ref={trigger}>
         <span class="theme-picker-icons">
           {[...themes, 'close' as const].map((name) => <Icon key={name} name={name} data-icon={name} />)}
