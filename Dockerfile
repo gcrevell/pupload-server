@@ -1,8 +1,16 @@
+FROM node:26.13.1-alpine AS web
+WORKDIR /app
+COPY package.json package-lock.json tsconfig.json ./
+RUN npm ci
+COPY web/ web/
+RUN npm run build
+
 FROM node:26.13.1-alpine
 WORKDIR /app
 ENV PUPLOAD_CONFIG_DIR=/config
 COPY package.json ./
 COPY server/ server/
+COPY --from=web /app/dist/web dist/web
 RUN mkdir /config && chown node:node /config
 ARG PUPLOAD_VERSION
 ENV PUPLOAD_VERSION=$PUPLOAD_VERSION

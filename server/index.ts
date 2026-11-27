@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { createServer } from 'node:http'
 import { hasAccounts } from './accounts/has-accounts.ts'
 import { newSetupCode } from './accounts/setup-code.ts'
@@ -8,6 +9,7 @@ import { databaseFile, openDatabase } from './db/open-database.ts'
 import { deleteExpiredSessions } from './sessions/sessions.ts'
 import { loadSettings, settingsFile } from './settings/load-settings.ts'
 import { SettingsError } from './settings/settings-error.ts'
+import { webDir } from './web-files.ts'
 
 function fail(message: string): never {
   process.stderr.write(`Pupload didn't start. ${message}\n`)
@@ -32,6 +34,8 @@ function open(file: string): ReturnType<typeof openDatabase> {
   }
 }
 
+if (!existsSync(webDir)) fail("Pupload's web UI isn't built. Run npm run build, then start it again.")
+
 const file = settingsFile()
 const { settings, created } = load(file)
 if (created) process.stdout.write(`Wrote the default settings to ${file}.\n`)
@@ -46,7 +50,7 @@ if (!hasAccounts(db)) {
 }
 
 const { port } = settings
-const server = createServer(createApp({ routes: v1Routes, db, setupCode, settings }))
+const server = createServer(createApp({ routes: v1Routes, db, webDir, setupCode, settings }))
 server.on('error', (err: NodeJS.ErrnoException) => {
   if (err.code === 'EADDRINUSE') fail(`Port ${port} is already in use. Stop whatever is using it, or change "port" in ${file}.`)
   fail(err.stack ?? err.message)
