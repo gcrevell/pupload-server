@@ -18,7 +18,15 @@ It needs Node 25 or newer, and has no dependencies to install.
 npm start
 ```
 
-It listens on port 8080, or on `PORT` if that's set. `GET /` answers `hello world`.
+It listens on port 7875. `GET /` answers `hello world`.
+
+## Settings
+
+Set these as environment variables. `server/env.ts` reads them when the server starts, and it won't start if one is wrong.
+
+| Variable | Default | What it sets |
+| --- | --- | --- |
+| `PORT` | `7875` | The port the server listens on |
 
 ## Testing a change
 

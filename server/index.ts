@@ -1,26 +1,29 @@
 import { createServer } from 'node:http'
 import { handleRequest } from './app.ts'
+import { EnvError, readEnv, type Env } from './env.ts'
 
 function fail(message: string): never {
   process.stderr.write(`Pupload didn't start. ${message}\n`)
   process.exit(1)
 }
 
-function port(): number {
-  const value = process.env.PORT ?? '8080'
-  const number = Number(value)
-  if (!/^\d+$/.test(value) || number > 65535) fail(`PORT is "${value}". Set it to a port number such as 8080.`)
-  return number
+function loadEnv(): Env {
+  try {
+    return readEnv()
+  } catch (err) {
+    if (err instanceof EnvError) fail(err.message)
+    throw err
+  }
 }
 
-const listenOn = port()
+const { port } = loadEnv()
 const server = createServer(handleRequest)
 server.on('error', (err: NodeJS.ErrnoException) => {
-  if (err.code === 'EADDRINUSE') fail(`Port ${listenOn} is already in use. Stop whatever is using it, or set PORT to a free port.`)
+  if (err.code === 'EADDRINUSE') fail(`Port ${port} is already in use. Stop whatever is using it, or set PORT to a free port.`)
   fail(err.stack ?? err.message)
 })
-server.listen(listenOn, () => {
-  process.stdout.write(`Pupload is listening on port ${listenOn}.\n`)
+server.listen(port, () => {
+  process.stdout.write(`Pupload is listening on port ${port}.\n`)
 })
 
 process.on('SIGTERM', () => {
