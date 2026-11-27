@@ -1,5 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { isIP } from 'node:net'
 import { dirname, join } from 'node:path'
+import { normalizeAddress } from '../api/client-address.ts'
 import { configDir, writableFolderAdvice } from '../config-dir.ts'
 import { messageOf } from '../message-of.ts'
 import { defaultSettings } from './default-settings.ts'
@@ -17,7 +19,7 @@ export function loadSettings(file: string): { settings: Settings; created: boole
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw new SettingsError(`Couldn't read ${file}. ${messageOf(err)}`)
     writeDefaults(file)
-    return { settings: { ...defaultSettings }, created: true }
+    return { settings: structuredClone(defaultSettings), created: true }
   }
   return { settings: parseSettings(text, file), created: false }
 }
@@ -47,9 +49,12 @@ export function parseSettings(text: string, file: string): Settings {
     if (!known.includes(key)) throw new SettingsError(`${file} has a setting called "${key}", which Pupload doesn't have. Remove it or fix its name. The settings are: ${known.join(', ')}.`)
   }
 
-  const { port = defaultSettings.port } = raw as Record<string, unknown>
+  const { port = defaultSettings.port, trustedProxies = defaultSettings.trustedProxies } = raw as Record<string, unknown>
   if (typeof port !== 'number' || !Number.isInteger(port) || port < 1 || port > 65535) {
     throw new SettingsError(`"port" in ${file} is ${JSON.stringify(port)}. Set it to a port number from 1 to 65535.`)
   }
-  return { port }
+  if (!Array.isArray(trustedProxies) || !trustedProxies.every((entry) => typeof entry === 'string' && isIP(normalizeAddress(entry)) !== 0)) {
+    throw new SettingsError(`"trustedProxies" in ${file} is ${JSON.stringify(trustedProxies)}. Set it to a list of the addresses of the proxies in front of Pupload, like ["192.0.2.10"].`)
+  }
+  return { port, trustedProxies: trustedProxies.map((entry: string) => normalizeAddress(entry)) }
 }

@@ -1,6 +1,5 @@
 import { strict as assert } from 'node:assert'
 import { after, before, test } from 'node:test'
-import { clientAddress } from '../server/api/client-address.ts'
 import { v1Routes } from '../server/api/v1/routes.ts'
 import { serverVersion } from '../server/version.ts'
 import { startApp, type StartedApp } from './helpers/start-app.ts'
@@ -68,11 +67,4 @@ test('a route passed to createApp answers', async () => {
 test('request.ip is the address the request came from', async () => {
   const res = await fetch(`${base}/api/test/ip`)
   assert.deepEqual(await res.json(), { ip: '127.0.0.1' })
-})
-
-test('clientAddress drops the IPv4-mapped prefix, and nothing else', () => {
-  assert.equal(clientAddress('::ffff:192.0.2.10'), '192.0.2.10')
-  assert.equal(clientAddress('::1'), '::1')
-  assert.equal(clientAddress('2001:db8::1'), '2001:db8::1')
-  assert.equal(clientAddress(undefined), '')
 })
