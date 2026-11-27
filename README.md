@@ -45,6 +45,8 @@ The API is versioned in its path, starting at `/api/v1`. A new version comes onl
 
 An error under `/api` answers with its HTTP status and a body of `{ "error": "…" }`, where the message is a sentence that can be shown to the person.
 
+A request that changes something (anything but `GET` or `HEAD`) is refused with a 403 when a browser sends it from another site's page. Requests with no `Sec-Fetch-Site` or `Origin` header, such as from curl, go through.
+
 An image gets `PUPLOAD_VERSION` from the build argument of the same name: `docker build --build-arg PUPLOAD_VERSION=2026.11.3 -t pupload .`
 
 ## Testing a change
