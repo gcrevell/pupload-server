@@ -7,8 +7,8 @@ let app: StartedApp
 before(async () => {
   app = await startApp({
     routes: [
-      { method: 'GET', path: '/api/test/created', handle: () => ({ status: 201, headers: { 'X-Test': 'yes' }, body: { ok: true } }) },
-      { method: 'GET', path: '/api/test/empty', handle: () => ({ status: 204 }) },
+      { method: 'GET', path: '/api/test/created', auth: 'public', handle: () => ({ status: 201, headers: { 'X-Test': 'yes' }, body: { ok: true } }) },
+      { method: 'GET', path: '/api/test/empty', auth: 'public', handle: () => ({ status: 204 }) },
     ],
   })
 })

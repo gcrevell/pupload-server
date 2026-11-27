@@ -12,8 +12,8 @@ before(async () => {
   app = await startApp({
     routes: [
       ...v1Routes,
-      { method: 'GET', path: '/api/test/ping', handle: () => ({ body: { pong: true } }) },
-      { method: 'GET', path: '/api/test/ip', handle: (request) => ({ body: { ip: request.ip } }) },
+      { method: 'GET', path: '/api/test/ping', auth: 'public', handle: () => ({ body: { pong: true } }) },
+      { method: 'GET', path: '/api/test/ip', auth: 'public', handle: (request) => ({ body: { ip: request.ip } }) },
     ],
   })
   base = app.base

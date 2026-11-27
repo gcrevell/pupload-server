@@ -64,6 +64,9 @@ The API is versioned in its path, starting at `/api/v1`. A new version comes onl
 | `GET /api/v1/info` | `{ "version": "2026.11.3", "setupNeeded": false }`: the server's version, from `PUPLOAD_VERSION`, or `dev` when that isn't set, and whether Pupload still needs its first account (`true` until one is made) |
 | `POST /api/v1/setup` | Creates the first account, an admin, from `{ "code", "username", "password" }` and answers 201 with `{ "user": { "id", "username", "isAdmin", "createdAt" } }`. 403 for a wrong setup code, 400 for a username or password that breaks the rules, and 409 once an account exists |
 | `POST /api/v1/sessions` | Signs in with `{ "username", "password" }`, answers 201 with `{ "user": … }` and sets the session cookie, which lasts 30 days. 401 for a wrong username or password, and 429 once the sign-in limit below is reached |
+| `GET /api/v1/me` | `{ "user": { "id", "username", "isAdmin", "createdAt" } }`: the account that is signed in |
+
+Everything under the API needs the session cookie, except `info`, setup and sign-in. Without a valid one it answers 401, and clears a cookie that no longer matches a session. A person who isn't an admin gets 403 from an endpoint that is for admins only.
 
 After 10 failed sign-ins for one username from one address within 15 minutes, sign-in answers 429 with `Retry-After` until the oldest of them is 15 minutes old.
 
