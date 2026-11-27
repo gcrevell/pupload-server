@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises'
 import type { IncomingMessage, OutgoingHttpHeaders, ServerResponse } from 'node:http'
 import type { DatabaseSync } from 'node:sqlite'
 import type { ApiRequest } from './api/api-request.ts'
@@ -13,10 +14,12 @@ import type { Settings } from './settings/settings.ts'
 import { authenticate } from './sessions/authenticate.ts'
 import { sessionCookies } from './sessions/session-cookie.ts'
 import { createSignInLimiter } from './sessions/sign-in-limiter.ts'
+import { listWebFiles, type WebFile } from './web-files.ts'
 
 export interface AppOptions {
   routes: Route[]
   db: DatabaseSync
+  webDir?: string
   setupCode?: string
   now?: () => number
   settings?: Settings
@@ -25,8 +28,9 @@ export interface AppOptions {
 export function createApp(options: AppOptions): (req: IncomingMessage, res: ServerResponse) => void {
   const { db, setupCode, now = Date.now, settings = defaultSettings } = options
   const context: AppContext = { db, setupCode, now, settings, cookies: sessionCookies(settings), signInLimiter: createSignInLimiter(now) }
+  const webFiles = options.webDir === undefined ? new Map<string, WebFile>() : listWebFiles(options.webDir)
   return (req, res) => {
-    respond(options.routes, context, req, res).catch((err: unknown) => {
+    respond(options.routes, webFiles, context, req, res).catch((err: unknown) => {
       process.stderr.write(`${req.method} ${req.url} failed. ${err instanceof Error ? (err.stack ?? err.message) : String(err)}\n`)
       if (res.headersSent) res.destroy()
       else sendError(res, pathnameOf(req), 500, 'Something went wrong on the server. Its log has the details.')
@@ -34,9 +38,11 @@ export function createApp(options: AppOptions): (req: IncomingMessage, res: Serv
   }
 }
 
-async function respond(allRoutes: Route[], context: AppContext, req: IncomingMessage, res: ServerResponse): Promise<void> {
+async function respond(allRoutes: Route[], webFiles: Map<string, WebFile>, context: AppContext, req: IncomingMessage, res: ServerResponse): Promise<void> {
   const pathname = pathnameOf(req)
   if (req.method === 'GET' && pathname === '/') return sendText(res, 200, 'hello world\n')
+  const webFile = webFiles.get(pathname)
+  if (webFile !== undefined) return sendWebFile(req, res, pathname, webFile)
   if (isCrossSite(req)) return sendError(res, pathname, 403, 'Pupload only accepts this from its own pages.')
 
   const routes = allRoutes.filter((route) => route.path === pathname)
@@ -91,6 +97,18 @@ function sendResponse(res: ServerResponse, { status = 200, headers = {}, body }:
     res.writeHead(status, headers)
     res.end()
   } else sendJson(res, status, body, headers)
+}
+
+async function sendWebFile(req: IncomingMessage, res: ServerResponse, pathname: string, { file, contentType }: WebFile): Promise<void> {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return sendError(res, pathname, 405, `${pathname} only answers GET and HEAD.`, { Allow: 'GET, HEAD' })
+  const body = await readFile(file)
+  res.writeHead(200, {
+    'Content-Type': contentType,
+    'Content-Length': body.length,
+    'X-Content-Type-Options': 'nosniff',
+    'Content-Security-Policy': "frame-ancestors 'none'",
+  })
+  res.end(body)
 }
 
 function sendText(res: ServerResponse, status: number, text: string, headers: OutgoingHttpHeaders = {}): void {
