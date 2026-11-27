@@ -17,7 +17,7 @@ docker build -t pupload .
 docker run -d --name pupload --read-only -v pupload-config:/config -p 7875:7875 pupload
 ```
 
-It listens on port 7875. `GET /` answers `hello world`, and the container reports healthy once `GET /api/v1/info` answers. To use another port in Docker, change the host side of `-p` and leave `port` in the settings at 7875, which is where the image expects it.
+It listens on port 7875, with its sign-in page at `/sign-in`. `GET /` still answers `hello world`, which is where signing in lands for now, and the container reports healthy once `GET /api/v1/info` answers. To use another port in Docker, change the host side of `-p` and leave `port` in the settings at 7875, which is where the image expects it.
 
 Without Docker, it needs Node 26 or newer, and has no dependencies to install:
 
@@ -35,7 +35,7 @@ curl -X POST http://localhost:7875/api/v1/setup -H 'Content-Type: application/js
   -d '{"code": "7KQ2-M9XD-PL4R", "username": "alex", "password": "a long passphrase"}'
 ```
 
-A username is 1 to 64 letters, digits, dots, underscores or hyphens, and a password needs at least 12 characters. Setup doesn't sign you in. This goes away once the web UI does setup itself.
+A username is 1 to 64 letters, digits, dots, underscores or hyphens, and a password needs at least 12 characters. Setup doesn't sign you in, so sign in at `/sign-in` next. This goes away once the web UI does setup itself.
 
 ## Settings
 
@@ -88,6 +88,8 @@ npm test
 ```
 
 The tests use Node's built-in test runner and start the server on a free port. CI runs them on every PR and every push to `main`.
+
+The web UI's pages, styles and scripts are in `server/web/`, served as they are with no build step: `sign-in.html` at `/sign-in` and `sign-in.js` at `/sign-in.js`. Pupload lists the folder when it starts and reads a file each time it's asked for, so an edit shows on reload and a new file needs a restart. The tests check that every file a page loads is served, but not how the page looks or behaves, so look at a change in a browser too, at phone, tablet and laptop widths, in light and dark mode.
 
 For a change to the Dockerfile or how the server starts, check that the image builds and goes healthy on a read-only filesystem:
 

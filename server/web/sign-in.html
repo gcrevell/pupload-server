@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sign in · Pupload</title>
+<script type="module" src="sign-in.js"></script>
+</head>
+<body>
+  <main class="sign-in">
+    <div class="sign-in-head">
+      <h1>Sign in</h1>
+    </div>
+    <form class="stack sign-in-form" method="post">
+      <label class="field">
+        <span class="field-label">Username</span>
+        <input class="input" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+      </label>
+      <label class="field">
+        <span class="field-label">Password</span>
+        <input class="input" name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <p class="alert alert--error" role="alert" hidden></p>
+      <button class="button button--primary button--block" type="submit">Sign in</button>
+    </form>
+  </main>
+</body>
+</html>
