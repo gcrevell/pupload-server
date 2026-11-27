@@ -1,21 +1,21 @@
 import { strict as assert } from 'node:assert'
-import { createServer, type Server } from 'node:http'
-import type { AddressInfo } from 'node:net'
 import { after, before, test } from 'node:test'
-import { handleRequest } from '../server/app.ts'
+import { v1Routes } from '../server/api/v1/routes.ts'
 import { serverVersion } from '../server/version.ts'
+import { startApp, type StartedApp } from './helpers/start-app.ts'
 
-let server: Server
+let app: StartedApp
 let base: string
 
 before(async () => {
-  server = createServer(handleRequest)
-  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
-  base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
+  app = await startApp({
+    routes: [...v1Routes, { method: 'GET', path: '/api/test/ping', handle: () => ({ pong: true }) }],
+  })
+  base = app.base
 })
 
-after(() => {
-  server.close()
+after(async () => {
+  await app.close()
 })
 
 test('GET / says hello world', async () => {
@@ -41,4 +41,10 @@ test('another method on /api/v1/info is a 405', async () => {
   const res = await fetch(`${base}/api/v1/info`, { method: 'POST' })
   assert.equal(res.status, 405)
   assert.equal(res.headers.get('allow'), 'GET')
+})
+
+test('a route passed to createApp answers', async () => {
+  const res = await fetch(`${base}/api/test/ping`)
+  assert.equal(res.status, 200)
+  assert.deepEqual(await res.json(), { pong: true })
 })

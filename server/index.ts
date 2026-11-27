@@ -1,5 +1,6 @@
 import { createServer } from 'node:http'
-import { handleRequest } from './app.ts'
+import { v1Routes } from './api/v1/routes.ts'
+import { createApp } from './app.ts'
 import { loadSettings, settingsFile } from './settings/load-settings.ts'
 import { SettingsError } from './settings/settings-error.ts'
 
@@ -22,7 +23,7 @@ const { settings, created } = load(file)
 if (created) process.stdout.write(`Wrote the default settings to ${file}.\n`)
 
 const { port } = settings
-const server = createServer(handleRequest)
+const server = createServer(createApp({ routes: v1Routes }))
 server.on('error', (err: NodeJS.ErrnoException) => {
   if (err.code === 'EADDRINUSE') fail(`Port ${port} is already in use. Stop whatever is using it, or change "port" in ${file}.`)
   fail(err.stack ?? err.message)
